@@ -1,21 +1,11 @@
 import React from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const HomePage = () => {
   return (
-    <div className="min-h-full bg-white text-gray-800">
-      <header className="bg-green-700 text-white p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">PakanUnggas</h1>
-          <nav>
-            <ul className="flex gap-4">
-              <li><a href="/" className="hover:underline">Beranda</a></li>
-              <li><a href="/formulasi" className="hover:underline">Formulasi</a></li>
-              <li><a href="/informasi" className="hover:underline">Informasi Nutrisi</a></li>
-              <li><a href="/login" className="hover:underline">Login</a></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white text-gray-800">
+      <Header />
 
       <main className="container mx-auto py-16 px-4">
         <section className="text-center">
@@ -47,9 +37,7 @@ const HomePage = () => {
         </section>
       </main>
 
-      <footer className="bg-green-700 text-white p-4 mt-16 text-center">
-        <p>&copy; 2025 Sistem Formulasi Ransum Unggas</p>
-      </footer>
+      <Footer />
     </div>
   );
 };
