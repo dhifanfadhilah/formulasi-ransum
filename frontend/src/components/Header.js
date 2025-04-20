@@ -3,7 +3,7 @@ import React from 'react';
 const Header = () => (
   <header className="bg-green-700 text-white p-4 shadow-md">
     <div className="container mx-auto flex justify-between items-center">
-      <h1 className="text-2xl font-bold">PakanUnggas</h1>
+      <a href="/"><h1 className="text-2xl font-bold">PakanUnggas</h1></a>
       <nav>
         <ul className="flex gap-4">
           <li><a href="/" className="hover:underline">Beranda</a></li>
