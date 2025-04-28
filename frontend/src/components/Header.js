@@ -8,7 +8,7 @@ const Header = () => (
         <ul className="flex gap-4">
           <li><a href="/" className="hover:underline">Beranda</a></li>
           <li><a href="/formulasi" className="hover:underline">Formulasi</a></li>
-          <li><a href="/nutrisi" className="hover:underline">Informasi Nutrisi</a></li>
+          <li><a href="/informasi-nutrisi" className="hover:underline">Informasi Nutrisi</a></li>
           <li><a href="/login" className="hover:underline">Login</a></li>
         </ul>
       </nav>

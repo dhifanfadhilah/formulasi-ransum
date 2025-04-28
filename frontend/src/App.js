@@ -5,6 +5,11 @@ import FormulasiPage from './pages/FormulasiPage';
 import HasilFormulasiPage from './pages/HasilFormulasiPage';
 import LoginPage from './pages/LoginPage';
 import DaftarPage from './pages/DaftarPage';
+import LupaPassword from './pages/LupaPassword';
+import InformasiNutrisi from './pages/InformasiNutrisi';
+import Dashboard from './pages/Dashboard';
+import RiwayatFormulasi from './pages/RiwayatFormulasi';
+import DetailFormulasi from './pages/DetailFormulasi';
 
 function App() {
   return (
@@ -15,6 +20,11 @@ function App() {
         <Route path="/hasil-formulasi" element={<HasilFormulasiPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/daftar" element={<DaftarPage />} />
+        <Route path="/lupa-password" element={<LupaPassword />} />
+        <Route path="/informasi-nutrisi" element={<InformasiNutrisi />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/riwayat-formulasi" element={<RiwayatFormulasi />} />
+        <Route path="/detail-formulasi" element={<DetailFormulasi />} />
       </Routes>
     </Router>
   );
