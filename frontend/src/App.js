@@ -13,6 +13,7 @@ import DetailFormulasi from './pages/DetailFormulasi';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import BahanPakanAdmin from './pages/admin/BahanPakanAdmin';
 import PenggunaAdmin from './pages/admin/PenggunaAdmin';
+import KebutuhanNutrisiAdmin from './pages/admin/KebutuhanNutrisiAdmin';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
         <Route path="/admin/bahan-pakan" element={<BahanPakanAdmin />} />
         <Route path="/admin/pengguna" element={<PenggunaAdmin />} />
+        <Route path="/admin/kebutuhan-nutrisi" element={<KebutuhanNutrisiAdmin />} />
       </Routes>
     </Router>
   );
