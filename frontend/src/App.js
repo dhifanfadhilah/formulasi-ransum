@@ -10,6 +10,7 @@ import InformasiNutrisi from './pages/InformasiNutrisi';
 import Dashboard from './pages/Dashboard';
 import RiwayatFormulasi from './pages/RiwayatFormulasi';
 import DetailFormulasi from './pages/DetailFormulasi';
+import DashboardAdmin from './pages/admin/DashboardAdmin';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/riwayat-formulasi" element={<RiwayatFormulasi />} />
         <Route path="/detail-formulasi" element={<DetailFormulasi />} />
+        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
       </Routes>
     </Router>
   );
