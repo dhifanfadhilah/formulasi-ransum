@@ -12,6 +12,7 @@ import RiwayatFormulasi from './pages/RiwayatFormulasi';
 import DetailFormulasi from './pages/DetailFormulasi';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
 import BahanPakanAdmin from './pages/admin/BahanPakanAdmin';
+import PenggunaAdmin from './pages/admin/PenggunaAdmin';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/detail-formulasi" element={<DetailFormulasi />} />
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
         <Route path="/admin/bahan-pakan" element={<BahanPakanAdmin />} />
+        <Route path="/admin/pengguna" element={<PenggunaAdmin />} />
       </Routes>
     </Router>
   );
