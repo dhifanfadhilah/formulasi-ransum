@@ -1,0 +1,44 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Ignore environment
+venv/
+env/
+
+# Ignore Django DB files
+*.sqlite3
+
+# Ignore local settings
+*.env
+*.local
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Node modules (for React)
+node_modules/
+
+# Ignore build output (React)
+build/
+dist/
+
+# Ignore log files
+*.log
+
+# Ignore compiled static files
+staticfiles/
+
+# Ignore media uploads (if applicable)
+media/
+
+# Ignore coverage reports
+htmlcov/
+.coverage
+
+# Ignore test cache
+.pytest_cache/
