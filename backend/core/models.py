@@ -16,8 +16,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
-
-
+    
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
@@ -26,6 +25,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
@@ -39,6 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 # Jenis & Fase Unggas
 class JenisUnggas(models.Model):
     nama = models.CharField(max_length=50)
+    fase = models.ManyToManyField('FaseUnggas', through='FaseJenisUnggas')
 
     def __str__(self):
         return self.nama
@@ -50,78 +51,71 @@ class FaseUnggas(models.Model):
     def __str__(self):
         return self.nama
 
+class FaseJenisUnggas(models.Model):
+    jenis_unggas = models.ForeignKey(JenisUnggas, on_delete=models.CASCADE)
+    fase = models.ForeignKey(FaseUnggas, on_delete=models.CASCADE)
+    urutan = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('jenis_unggas', 'fase')
+        ordering = ['urutan']
+
+    def __str__(self):
+        return f"{self.jenis_unggas.nama} - {self.fase.nama} (Urutan: {self.urutan})"
+
 # Bahan Pakan
 class BahanPakan(models.Model):
     nama = models.CharField(max_length=100)
     harga = models.DecimalField(max_digits=10, decimal_places=2)
-    kadar_air = models.DecimalField(max_digits=5, decimal_places=2)
-    bahan_kering = models.DecimalField(max_digits=5, decimal_places=2)
-    abu = models.DecimalField(max_digits=5, decimal_places=2)
-    protein_kasar = models.DecimalField(max_digits=5, decimal_places=2)
-    lemak_kasar = models.DecimalField(max_digits=5, decimal_places=2)
-    serat_kasar = models.DecimalField(max_digits=5, decimal_places=2)
-    betn = models.DecimalField(max_digits=5, decimal_places=2)
-    energi_metabolisme = models.DecimalField(max_digits=10, decimal_places=2)
-    calsium = models.DecimalField(max_digits=5, decimal_places=2)
-    posfor_total = models.DecimalField(max_digits=5, decimal_places=2)
-    posfor_tersedia = models.DecimalField(max_digits=5, decimal_places=2)
-    lys = models.DecimalField(max_digits=5, decimal_places=2)
-    met = models.DecimalField(max_digits=5, decimal_places=2)
-    met_sis = models.DecimalField(max_digits=5, decimal_places=2)
-    tre = models.DecimalField(max_digits=5, decimal_places=2)
-    trypt = models.DecimalField(max_digits=5, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.nama
+
+class Nutrien(models.Model):
+    nama = models.CharField(max_length=100)
+    satuan = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nama
+
+class KandunganNutrien(models.Model):
+    bahan_pakan = models.ForeignKey(BahanPakan, on_delete=models.CASCADE, related_name='kandungan_nutrien')
+    nutrien = models.ForeignKey(Nutrien, on_delete=models.CASCADE)
+    nilai = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('bahan_pakan', 'nutrien')
+
+    def __str__(self):
+        return f"{self.bahan_pakan.nama} - {self.nutrien.nama}: {self.nilai}"
     
 # Kebutuhan Nutrien
 class KebutuhanNutrien(models.Model):
     jenis_unggas = models.ForeignKey(JenisUnggas, on_delete=models.CASCADE)
     fase = models.ForeignKey(FaseUnggas, on_delete=models.CASCADE)
+    nutrien = models.ForeignKey(Nutrien, on_delete=models.CASCADE)
+    min_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    max_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    bk_min = models.DecimalField(max_digits=5, decimal_places=2)
-    bk_max = models.DecimalField(max_digits=5, decimal_places=2)
-    abu_min = models.DecimalField(max_digits=5, decimal_places=2)
-    abu_max = models.DecimalField(max_digits=5, decimal_places=2)
-    pk_min = models.DecimalField(max_digits=5, decimal_places=2)
-    pk_max = models.DecimalField(max_digits=5, decimal_places=2)
-    lk_min = models.DecimalField(max_digits=5, decimal_places=2)
-    lk_max = models.DecimalField(max_digits=5, decimal_places=2)
-    sk_min = models.DecimalField(max_digits=5, decimal_places=2)
-    sk_max = models.DecimalField(max_digits=5, decimal_places=2)
-    betn_min = models.DecimalField(max_digits=5, decimal_places=2)
-    betn_max = models.DecimalField(max_digits=5, decimal_places=2)
-    me_min = models.DecimalField(max_digits=10, decimal_places=2)
-    me_max = models.DecimalField(max_digits=10, decimal_places=2)
-    ca_min = models.DecimalField(max_digits=5, decimal_places=2)
-    ca_max = models.DecimalField(max_digits=5, decimal_places=2)
-    p_total_min = models.DecimalField(max_digits=5, decimal_places=2)
-    p_total_max = models.DecimalField(max_digits=5, decimal_places=2)
-    p_tersedia_min = models.DecimalField(max_digits=5, decimal_places=2)
-    p_tersedia_max = models.DecimalField(max_digits=5, decimal_places=2)
-    lys_min = models.DecimalField(max_digits=5, decimal_places=2)
-    lys_max = models.DecimalField(max_digits=5, decimal_places=2)
-    met_min = models.DecimalField(max_digits=5, decimal_places=2)
-    met_max = models.DecimalField(max_digits=5, decimal_places=2)
-    met_sis_min = models.DecimalField(max_digits=5, decimal_places=2)
-    met_sis_max = models.DecimalField(max_digits=5, decimal_places=2)
-    tre_min = models.DecimalField(max_digits=5, decimal_places=2)
-    tre_max = models.DecimalField(max_digits=5, decimal_places=2)
-    trypt_min = models.DecimalField(max_digits=5, decimal_places=2)
-    trypt_max = models.DecimalField(max_digits=5, decimal_places=2)
+    class Meta:
+        unique_together = ('jenis_unggas', 'fase', 'nutrien')
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.jenis_unggas} - {self.fase} - {self.nutrien.nama}"
 
 # Formulasi & Bahan Formulasi
 class Formulasi(models.Model):
+    nama_formulasi = models.CharField(max_length=100, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     unggas = models.ForeignKey(JenisUnggas, on_delete=models.CASCADE)
     fase = models.ForeignKey(FaseUnggas, on_delete=models.CASCADE)
     formulasi = models.JSONField()
     total_harga = models.DecimalField(max_digits=12, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
 
 class BahanFormulasi(models.Model):

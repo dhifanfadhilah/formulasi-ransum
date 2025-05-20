@@ -1,7 +1,9 @@
 from django.contrib import admin
 from .models import (
-    User, JenisUnggas, FaseUnggas, BahanPakan,
-    KebutuhanNutrien, Formulasi, BahanFormulasi
+    User, JenisUnggas, FaseUnggas, FaseJenisUnggas,
+    BahanPakan, KandunganNutrien,
+    Nutrien, KebutuhanNutrien,
+    Formulasi, BahanFormulasi
 )
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
@@ -24,10 +26,13 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ['email', 'name']
 
-admin.site.register(User, UserAdmin)
+admin.site.register(User)
 admin.site.register(JenisUnggas)
 admin.site.register(FaseUnggas)
+admin.site.register(FaseJenisUnggas)
 admin.site.register(BahanPakan)
+admin.site.register(KandunganNutrien)
+admin.site.register(Nutrien)
 admin.site.register(KebutuhanNutrien)
 admin.site.register(Formulasi)
 admin.site.register(BahanFormulasi)
