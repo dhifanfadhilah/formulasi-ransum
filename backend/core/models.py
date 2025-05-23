@@ -74,6 +74,7 @@ class BahanPakan(models.Model):
         return self.nama
 
 class Nutrien(models.Model):
+    kode = models.CharField(max_length=20)
     nama = models.CharField(max_length=100)
     satuan = models.CharField(max_length=50)
 
@@ -83,7 +84,7 @@ class Nutrien(models.Model):
 class KandunganNutrien(models.Model):
     bahan_pakan = models.ForeignKey(BahanPakan, on_delete=models.CASCADE, related_name='kandungan_nutrien')
     nutrien = models.ForeignKey(Nutrien, on_delete=models.CASCADE)
-    nilai = models.DecimalField(max_digits=10, decimal_places=2)
+    nilai = models.DecimalField(max_digits=10, decimal_places=3)
 
     class Meta:
         unique_together = ('bahan_pakan', 'nutrien')
