@@ -10,9 +10,24 @@ User = get_user_model()
 
 # User Serializer
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'phone_number', 'user_type', 'is_active', 'created_at']
+        fields = ['id', 'email', 'name', 'phone_number', 'password', 'user_type', 'is_active', 'created_at']
+        read_only_fields = ['is_active', 'created_at']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.is_active = True
+        user.save()
+        return user
+    
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password harus memiliki minimal 8 karakter")
+        return value
 
 # Jenis Unggas
 class JenisUnggasSerializer(serializers.ModelSerializer):
@@ -44,6 +59,11 @@ class BahanPakanSerializer(serializers.ModelSerializer):
         model = BahanPakan
         fields = '__all__'
 
+    def validate_harga(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Harga tidak boleh negatif")
+        return value
+
 # Kandungan Nutrien
 class KandunganNutrienSerializer(serializers.ModelSerializer):
     nutrien = NutrienSerializer(read_only=True)
@@ -52,6 +72,11 @@ class KandunganNutrienSerializer(serializers.ModelSerializer):
         model = KandunganNutrien
         fields = '__all__'
 
+    def validate_nilai(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Nilai tidak boleh negatif")
+        return value
+
 # Kebutuhan Nutrien
 class KebutuhanNutrienSerializer(serializers.ModelSerializer):
     nutrien = NutrienSerializer(read_only=True)
@@ -59,6 +84,11 @@ class KebutuhanNutrienSerializer(serializers.ModelSerializer):
     class Meta:
         model = KebutuhanNutrien
         fields = '__all__'
+
+    def validate_nilai(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Nilai tidak boleh negatif")
+        return value
 
 # Bahan Formulasi
 class BahanFormulasiSerializer(serializers.ModelSerializer):
