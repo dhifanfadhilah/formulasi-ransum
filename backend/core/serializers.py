@@ -85,7 +85,12 @@ class KebutuhanNutrienSerializer(serializers.ModelSerializer):
         model = KebutuhanNutrien
         fields = '__all__'
 
-    def validate_nilai(self, value):
+    def validate_min_value(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Nilai tidak boleh negatif")
+        return value
+    
+    def validate_max_value(self, value):
         if value < 0:
             raise serializers.ValidationError("Nilai tidak boleh negatif")
         return value
