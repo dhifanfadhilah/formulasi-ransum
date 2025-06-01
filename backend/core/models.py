@@ -65,10 +65,24 @@ class FaseJenisUnggas(models.Model):
 
 # Bahan Pakan
 class BahanPakan(models.Model):
+    KATEGORI_CHOICES = [
+        ('energi', 'Sumber Energi'),
+        ('protein', 'Sumber Protein'),
+        ('mineral', 'Mineral & Prefix'),
+    ]
+
     nama = models.CharField(max_length=100)
     harga = models.DecimalField(max_digits=10, decimal_places=2)
+    kategori = models.CharField(
+        max_length=20,
+        choices=KATEGORI_CHOICES,
+        default='energi',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    min_penggunaan = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    max_penggunaan = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    prioritas = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.nama

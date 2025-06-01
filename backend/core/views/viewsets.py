@@ -3,18 +3,18 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticate
 from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import (
+from core.serializers import (
     UserSerializer, JenisUnggasSerializer, FaseUnggasSerializer,
     FaseJenisUnggasSerializer, NutrienSerializer, KebutuhanNutrienSerializer,
     BahanPakanSerializer, KandunganNutrienSerializer,
     FormulasiSerializer, BahanFormulasiSerializer
 )
-from .models import (
+from core.models import (
     JenisUnggas, FaseUnggas, FaseJenisUnggas,
     Nutrien, KebutuhanNutrien, BahanPakan,
     KandunganNutrien, Formulasi, BahanFormulasi
 )
-from .permissions import IsAdminOrSelf, IsAdminOrReadOnly
+from core.permissions import IsAdminOrSelf, IsAdminOrReadOnly
 
 User = get_user_model()
 
@@ -29,13 +29,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
+        if user.is_authenticated and user.user_type == 'admin':
             return User.objects.all()
         return User.objects.filter(id=user.id)
 
     def get_object(self):
         obj = super().get_object()
-        if not self.request.user.is_superuser and obj != self.request.user:
+        user = self.request.user
+        if not user.user_type == 'admin' and obj != user:
             raise PermissionDenied("Anda tidak memiliki izin untuk mengakses data ini.")
         return obj
 
@@ -93,6 +94,8 @@ class FormulasiViewSet(viewsets.ModelViewSet):
     queryset = Formulasi.objects.all()
     serializer_class = FormulasiSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['unggas', 'fase']
 
     def get_queryset(self):
         user = self.request.user

@@ -113,3 +113,41 @@ class FormulasiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Formulasi
         fields = '__all__'
+
+class FormulasiInputSerializer(serializers.Serializer):
+    jenis_unggas = serializers.PrimaryKeyRelatedField(queryset=JenisUnggas.objects.all())
+    fase = serializers.PrimaryKeyRelatedField(queryset=FaseUnggas.objects.all())
+    bahan_pakan_ids = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=BahanPakan.objects.all()),
+        allow_empty=False
+    )
+
+    def validate_bahan_pakan_ids(self, value):
+        # Inisialisasi flag kategori
+        kategori_terpenuhi = {'energi': False, 'protein': False, 'mineral': False}
+
+        # Mapping nama kategori jika di DB tidak pakai nama pendek
+        def get_kategori_key(kategori_str):
+            kategori_str = kategori_str.lower()
+            if 'energi' in kategori_str:
+                return 'energi'
+            elif 'protein' in kategori_str:
+                return 'protein'
+            elif 'mineral' in kategori_str or 'premix' in kategori_str:
+                return 'mineral'
+            return None
+
+        for bahan in value:
+            kategori_key = get_kategori_key(bahan.kategori)
+            if kategori_key:
+                kategori_terpenuhi[kategori_key] = True
+
+        # Cek apakah semua kategori terpenuhi
+        if not all(kategori_terpenuhi.values()):
+            minus = [key for key, value in kategori_terpenuhi.items() if not value]
+            raise serializers.ValidationError(
+                f"Bahan pakan kurang memenuhi kategori: {', '.join(minus)}. "
+                "Harus memilih minimal satu bahan dari masing-masing kategori: sumber energi, sumber protein, dan mineral & premix."
+            )
+        
+        return value
