@@ -74,8 +74,10 @@ class KebutuhanNutrienViewSet(viewsets.ModelViewSet):
 
 class BahanPakanViewSet(viewsets.ModelViewSet):
     serializer_class = BahanPakanSerializer
-    queryset = BahanPakan.objects.all()
+    queryset = BahanPakan.objects.all().order_by('id')
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['kategori']
 
 class KandunganNutrienViewSet(viewsets.ModelViewSet):
     serializer_class = KandunganNutrienSerializer
@@ -93,7 +95,7 @@ class BahanFormulasiViewSet(viewsets.ReadOnlyModelViewSet):
 class FormulasiViewSet(viewsets.ModelViewSet):
     queryset = Formulasi.objects.all()
     serializer_class = FormulasiSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['unggas', 'fase']
 

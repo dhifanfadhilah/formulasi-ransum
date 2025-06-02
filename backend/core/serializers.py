@@ -43,9 +43,11 @@ class FaseUnggasSerializer(serializers.ModelSerializer):
 
 # FaseJenisUnggas
 class FaseJenisUnggasSerializer(serializers.ModelSerializer):
+    fase_nama = serializers.CharField(source='fase.nama', read_only=True)
+    jenis_unggas_nama = serializers.CharField(source='jenis_unggas.nama', read_only=True)
     class Meta:
         model = FaseJenisUnggas
-        fields = '__all__'
+        fields = ['id', 'urutan', 'jenis_unggas', 'fase', 'fase_nama', 'jenis_unggas_nama']
 
 # Nutrien
 class NutrienSerializer(serializers.ModelSerializer):

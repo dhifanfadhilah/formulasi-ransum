@@ -40,6 +40,8 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
             ).first()
             nilai = float(kandungan.nilai) if kandungan else 0.0
             row.append(nilai)
+            print(f"Nutrien: {nutrien.nama}")
+            print("Baris nutrien:", row)
 
         # Tambahkan kendala batas bawah (min_value): -Ax ≤ -b
         if kebutuhan.min_value is not None:
@@ -61,13 +63,17 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
     # Batasan tiap bahan
     bounds = []
     for bahan in bahan_pakan_list:
-        min_pakai = float(bahan.min_penggunaan or 0.0)
-        max_pakai = float(bahan.max_penggunaan if bahan.max_penggunaan is not None else None)
+        min_pakai = float(bahan.min_penggunaan if bahan.min_penggunaan is not None else 0)
+        max_pakai = float(bahan.max_penggunaan if bahan.max_penggunaan is not None else 100)
         bounds.append((min_pakai, max_pakai))
 
     # Kendala total bahan = 100%
     A_eq = [np.ones(len(bahan_pakan_list)).tolist()]
     b_eq = [100.0]
+
+    print("A_ub = ", A_ub)
+    print("b_ub = ", b_ub)
+    print("bounds = ", bounds)
 
     # Hitung LP menggunakan solver 'highs' dari SciPy
     result = linprog(
@@ -100,5 +106,5 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
         # Jika gagal, kembalikan pesan error
         return {
             'status': 'failed',
-            'message': 'Formulasi gagal dihitung. Pastikan semua data nutrien, kebutuhan, dan harga lengkap.'
+            'message': 'Formulasi gagal dihitung. {result.message}'
         }
