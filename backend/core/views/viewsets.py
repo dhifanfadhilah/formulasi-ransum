@@ -14,7 +14,7 @@ from core.models import (
     Nutrien, KebutuhanNutrien, BahanPakan,
     KandunganNutrien, Formulasi, BahanFormulasi
 )
-from core.permissions import IsAdminOrSelf, IsAdminOrReadOnly
+from core.permissions import IsAdminOrSelf, IsAdminOrReadOnly, IsAdmin
 
 User = get_user_model()
 
@@ -25,7 +25,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
-        return [IsAuthenticated(), IsAdminOrSelf()]
+        elif self.action == ['list', 'destroy']:
+            return [IsAdmin()]
+        elif self.action == ['retrieve', 'update', 'partial_update']:
+            return [IsAdminOrSelf()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user

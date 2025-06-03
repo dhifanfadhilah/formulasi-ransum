@@ -25,3 +25,10 @@ class IsAdminOrReadOnly(BasePermission):
             request.user.is_authenticated
             and request.user.user_type == 'admin'
         )
+    
+class IsAdmin(BasePermission):
+    """
+    Izin hanya untuk pengguna dengan user_type = 'admin'
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.user_type == 'admin'

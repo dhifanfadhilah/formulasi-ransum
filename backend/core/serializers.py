@@ -1,5 +1,10 @@
 from rest_framework import serializers
+from datetime import timedelta
+from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .models import (
     JenisUnggas, FaseUnggas, FaseJenisUnggas,
     BahanPakan, Nutrien, KandunganNutrien,
@@ -28,6 +33,84 @@ class UserSerializer(serializers.ModelSerializer):
         if len(value) < 8:
             raise serializers.ValidationError("Password harus memiliki minimal 8 karakter")
         return value
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ['email', 'name', 'phone_number', 'password']
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email sudah terdaftar")
+        return value
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            name=validated_data['name'],
+            phone_number=validated_data.get('phone_number', ''),
+            user_type='user',
+            is_active=True,
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        remember_me = self.context['request'].data.get('remember_me', False)
+
+        refresh = self.get_token(self.user)
+
+        if remember_me:
+            refresh.set_exp(lifetime=timedelta(days=1))
+        else:
+            refresh.set_exp()
+
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+
+        data.update({
+            'user_id': self.user.id,
+            'email': self.user.email,
+            'name': self.user.name,
+            'user_type': self.user.user_type
+        })
+
+        return data
+    
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Tambahkan informasi user ke token (opsional)
+        token['user_type'] = user.user_type
+        token['email'] = user.email
+        token['name'] = user.name
+
+        return token
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            token = RefreshToken(self.token)
+            token.blacklist()
+        except TokenError:
+            raise serializers.ValidationError("Token tidak valid atau sudah logout.")
 
 # Jenis Unggas
 class JenisUnggasSerializer(serializers.ModelSerializer):

@@ -1,6 +1,10 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 from core.views.formulasi import FormulasiAPIView
+from core.views.auth import RegisterAPIView, customTokenObtainPairView, LogoutView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView, TokenRefreshView
+)
 from core.views.viewsets import (
     UserViewSet, JenisUnggasViewSet, FaseUnggasViewSet,
     FaseJenisUnggasViewSet, NutrienViewSet, KebutuhanNutrienViewSet,
@@ -23,4 +27,8 @@ router.register(r'hasil-formulasi', FormulasiViewSet, basename='hasil-formulasi'
 
 urlpatterns = router.urls + [
     path('formulasi/', FormulasiAPIView.as_view(), name='formulasi'),
+    path('auth/register/', RegisterAPIView.as_view(), name='register'),
+    path('auth/login/', customTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
 ]
