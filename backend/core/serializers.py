@@ -3,6 +3,12 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .models import (
@@ -45,6 +51,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email sudah terdaftar")
         return value
+    
+    def validate_password(self, value):
+        validate_password(value)
+        return value
 
     def create(self, validated_data):
         user = User(
@@ -52,19 +62,39 @@ class RegisterSerializer(serializers.ModelSerializer):
             name=validated_data['name'],
             phone_number=validated_data.get('phone_number', ''),
             user_type='user',
-            is_active=True,
+            is_active=False,
         )
         user.set_password(validated_data['password'])
         user.save()
-        return user
 
-    def validate_password(self, value):
-        validate_password(value)
-        return value
+        send_activation_email(user)
+
+        return user
+    
+def send_activation_email(user):
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        activation_link = f"{settings.FRONTEND_URL}/verify-email/{uid}/{token}"
+
+        subject = "Verifikasi Akun Anda"
+        message = f"Silakan klik link berikut untuk aktivasi akun Anda: \n\n{activation_link}"
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email]
+        )
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
+
+        if not self.user.is_active:
+            raise serializers.ValidationError(
+                 {"error": "Akun belum diverifikasi. Silakan periksa email Anda untuk aktivasi."}
+            )
 
         remember_me = self.context['request'].data.get('remember_me', False)
 
