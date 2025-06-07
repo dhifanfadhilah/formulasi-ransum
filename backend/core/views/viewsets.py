@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from core.serializers import (
-    UserSerializer, JenisUnggasSerializer, FaseUnggasSerializer,
+    UserSerializer, AdminUpdateUserSerializer, JenisUnggasSerializer, FaseUnggasSerializer,
     FaseJenisUnggasSerializer, NutrienSerializer, KebutuhanNutrienSerializer,
     BahanPakanSerializer, KandunganNutrienSerializer,
     FormulasiSerializer, BahanFormulasiSerializer
@@ -19,15 +19,20 @@ from core.permissions import IsAdminOrSelf, IsAdminOrReadOnly, IsAdmin
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
     queryset = User.objects.all()
+    
+    def get_serializer_class(self):
+        user = self.request.user
+        if user.is_authenticated and user.user_type == 'admin':
+            return AdminUpdateUserSerializer
+        return UserSerializer
 
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
-        elif self.action == ['list', 'destroy']:
+        elif self.action in ['list', 'destroy']:
             return [IsAdmin()]
-        elif self.action == ['retrieve', 'update', 'partial_update']:
+        elif self.action in ['retrieve', 'update', 'partial_update']:
             return [IsAdminOrSelf()]
         return [IsAuthenticated()]
 
@@ -43,10 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if not user.user_type == 'admin' and obj != user:
             raise PermissionDenied("Anda tidak memiliki izin untuk mengakses data ini.")
         return obj
-
-    def perform_create(self, serializer):
-        serializer.save()
-
+    
 class JenisUnggasViewSet(viewsets.ModelViewSet):
     serializer_class = JenisUnggasSerializer
     queryset = JenisUnggas.objects.all()

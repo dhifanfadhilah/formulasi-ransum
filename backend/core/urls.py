@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from core.views.formulasi import FormulasiAPIView
 from core.views.auth import (
     RegisterAPIView, CustomTokenObtainPairView, 
-    LogoutView, VerifyEmailAPIView
+    LogoutView, VerifyEmailAPIView, ChangePasswordView,
+    PasswordResetRequestView, PasswordResetConfirmView
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, TokenRefreshView
@@ -35,4 +36,7 @@ urlpatterns = router.urls + [
     path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
+    path('auht/password-reset-request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
+    path('auth/password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 ]

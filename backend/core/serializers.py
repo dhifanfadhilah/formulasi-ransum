@@ -3,12 +3,12 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
 from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .models import (
@@ -21,24 +21,16 @@ User = get_user_model()
 
 # User Serializer
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True)
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'phone_number', 'password', 'user_type', 'is_active', 'created_at']
-        read_only_fields = ['is_active', 'created_at']
+        fields = ['id', 'email', 'name', 'phone_number']
+        read_only_fields = ['id', 'email']
 
-    def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = User(**validated_data)
-        user.set_password(password)
-        user.is_active = True
-        user.save()
-        return user
-    
-    def validate_password(self, value):
-        if len(value) < 8:
-            raise serializers.ValidationError("Password harus memiliki minimal 8 karakter")
-        return value
+class AdminUpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'name', 'phone_number', 'user_type', 'is_active']
+        read_only_fields = ['id', 'email']
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -141,6 +133,82 @@ class LogoutSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             raise serializers.ValidationError("Token tidak valid atau sudah logout.")
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+    
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError({'old_password': ['Password lama salah.']})
+        return data
+    
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+
+        RefreshToken.for_user(user)
+
+        return user
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email tidak terdaftar.")
+        return value
+    
+    def save(self):
+        user = User.objects.get(email=self.validated_data['email'])
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
+        
+        html_message = render_to_string('emails/reset_password.html', {
+            'user': user,
+            'reset_link': reset_link
+        })
+
+        email = EmailMessage(
+            subject="Reset Password Akun Anda",
+            body = html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
+        )
+        email.content_subtype = 'html'
+        email.send()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+    
+    def validate(self, data):
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uid']))
+            self.user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError({'uid': ['UID tidak valid.']})
+        
+        if not default_token_generator.check_token(self.user, data['token']):
+            raise serializers.ValidationError({'token': ['Token tidak valid atau kadaluwarsa.']})
+        return data
+    
+    def save(self):
+        self.user.set_password(self.validated_data['new_password'])
+        self.user.save()
 
 # Jenis Unggas
 class JenisUnggasSerializer(serializers.ModelSerializer):
