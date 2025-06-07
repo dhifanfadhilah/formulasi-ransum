@@ -14,6 +14,7 @@ import DashboardAdmin from './pages/admin/DashboardAdmin';
 import BahanPakanAdmin from './pages/admin/BahanPakanAdmin';
 import PenggunaAdmin from './pages/admin/PenggunaAdmin';
 import KebutuhanNutrisiAdmin from './pages/admin/KebutuhanNutrisiAdmin';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/hasil-formulasi" element={<HasilFormulasiPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/daftar" element={<DaftarPage />} />
+        <Route path="/verify-email/:uid/:token" element={<VerifyEmailPage />} />
         <Route path="/lupa-password" element={<LupaPassword />} />
         <Route path="/informasi-nutrisi" element={<InformasiNutrisi />} />
         <Route path="/dashboard" element={<Dashboard />} />
