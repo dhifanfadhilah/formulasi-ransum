@@ -5,7 +5,7 @@ import {
   fetchJenisUnggas, fetchBahanPakan, fetchFaseByJenisUnggas,
   fetchBahanPakanByKategori,
   postFormulasi,
-} from './services/api';
+} from './services/userApi';
 
 const FormulasiPage = () => {
   const [jenisUnggas, setJenisUnggas] = useState([]);

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
-import { registerUser } from '../services/auth';
-import { useNavigate } from 'react-router-dom';
+import { registerUser } from './services/auth';
 
 const DaftarPage = () => {
   const [formData, setFormData] = useState({
@@ -16,24 +15,56 @@ const DaftarPage = () => {
 
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate();
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validatePhoneNumber = (phone) => {
+    const regex = /^08[1-9][0-9]{7,10}$/;
+    return regex.test(phone);
+  };
+
+  const getPasswordStrength = (password) => {
+    if (password.length < 6) return 'Lemah';
+    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) {
+      return 'Kuat';
+    }
+    return 'Sedang';
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
     setError(null);
+
+    if (name === 'password') {
+      setPasswordStrength(getPasswordStrength(value));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setError("Format email tidak valid.");
+      return;
+    }
+
+    if (!validatePhoneNumber(formData.phone_number)) {
+      setError("Nomor telepon tidak valid.");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Konfirmasi kata sandi tidak cocok.");
       return;
     }
 
+    setIsLoading(true);
     try {
       await registerUser({
         name: formData.name,
@@ -43,9 +74,16 @@ const DaftarPage = () => {
       });
       setSuccessMessage("Registrasi berhasil! Silakan cek email untuk verifikasi.");
       setFormData({ name: '', email: '', phone_number: '', password: '', confirmPassword: '' });
+      setPasswordStrength('');
     } catch (err) {
-      const errorMsg = err?.email?.[0] || err?.password?.[0] || "Registrasi gagal.";
-      setError(errorMsg);
+      if (err && typeof err === 'object') {
+        const errors = Object.values(err).flat();
+        setError(errors.join(', '));
+      } else {
+        setError("Registrasi gagal.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,16 +116,40 @@ const DaftarPage = () => {
 
             <div>
               <label className="block text-gray-700">Kata Sandi</label>
-              <input type="password" name="password" value={formData.password} onChange={handleChange} required className="w-full border rounded-xl px-4 py-2 mt-1" placeholder="Kata sandi" />
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full border rounded-xl px-4 py-2 mt-1"
+                placeholder="Kata sandi"
+              />
+              {formData.password && (
+                <p className={`text-sm mt-1 ${
+                  passwordStrength === "Kuat" ? "text-green-600" :
+                  passwordStrength === "Sedang" ? "text-yellow-500" : "text-red-500"
+                }`}>
+                  Kekuatan sandi: {passwordStrength}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-gray-700">Konfirmasi Kata Sandi</label>
-              <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="w-full border rounded-xl px-4 py-2 mt-1" placeholder="Ulangi kata sandi" />
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className="w-full border rounded-xl px-4 py-2 mt-1"
+                placeholder="Ulangi kata sandi"
+              />
             </div>
 
-            <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-xl font-semibold hover:bg-green-700 transition duration-300">
-              Daftar
+            <button type="submit" disabled={isLoading} className="w-full bg-green-600 text-white py-2 rounded-xl font-semibold hover:bg-green-700 transition duration-300">
+              {isLoading ? 'Memproses...' : 'Daftar'}
             </button>
           </form>
 
