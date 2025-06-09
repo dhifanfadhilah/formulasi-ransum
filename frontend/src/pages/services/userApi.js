@@ -29,3 +29,18 @@ export const postFormulasi = async (payload) => {
   const response = await API.post(`/formulasi/`, payload);
   return response.data;
 };
+
+export const getUserProfile = async (userId) => {
+  const response = await API.get(`/users/${userId}/`);
+  return response.data;
+};
+
+export const updateUserProfile = async (userId, updateDate) => {
+  const response = await API.patch(`/users/${userId}/`, updateDate);
+  return response.data;
+}
+
+export const changePassword = async (formData) => {
+  const response = await API.post(`/auth/change-password/`, formData);
+  return response.data;
+};

@@ -31,3 +31,17 @@ export const logoutUser = async () => {
     console.error("Logout error:", err);
   }
 };
+
+export const requestPasswordReset = async (email) => {
+  const response = await API.post(`/auth/password-reset-request/`, {email});
+  return response.data;
+}
+
+export const resetPasswordConfirm = async (uid, token, new_password) => {
+  const res = await api.post(`/auth/password-reset-confirm/${uid}/${token}/`, {
+    uid,
+    token,
+    new_password
+  });
+  return res.data;
+};

@@ -15,10 +15,14 @@ import BahanPakanAdmin from './pages/admin/BahanPakanAdmin';
 import PenggunaAdmin from './pages/admin/PenggunaAdmin';
 import KebutuhanNutrisiAdmin from './pages/admin/KebutuhanNutrisiAdmin';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
+import ProfilePage from './pages/ProfilePage';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <Router>
+      <ToastContainer position='top-right' autoClose={3000} />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/formulasi" element={<FormulasiPage />} />
@@ -35,6 +39,7 @@ function App() {
         <Route path="/admin/bahan-pakan" element={<BahanPakanAdmin />} />
         <Route path="/admin/pengguna" element={<PenggunaAdmin />} />
         <Route path="/admin/kebutuhan-nutrisi" element={<KebutuhanNutrisiAdmin />} />
+        <Route path="/profil" element={<ProfilePage />} />
       </Routes>
     </Router>
   );
