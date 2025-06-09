@@ -8,22 +8,39 @@ import { toast } from 'react-toastify';
 const ResetPasswordPage = () => {
   const { uid, token } = useParams();
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     new_password: '',
     confirm_password: ''
   });
-
+  const [passwordStrength, setPasswordStrength] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const getPasswordStrength = (password) => {
+    if (password.length < 8) return 'Lemah';
+    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) {
+      return 'Kuat';
+    }
+    return 'Sedang';
+  };
 
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (e.target.name === 'new_password') {
+      setPasswordStrength(getPasswordStrength(e.target.value));
+    }
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
+
+    if (formData.new_password.length < 6) {
+        toast.error("Password minimal 6 karakter.");
+        setLoading(false);
+        return;
+    }
 
     if (formData.new_password !== formData.confirm_password) {
       toast.error("Password tidak cocok.");
@@ -34,9 +51,9 @@ const ResetPasswordPage = () => {
     try {
       await resetPasswordConfirm(uid, token, formData.new_password);
       toast.success("Password berhasil diubah. Silakan login.");
-      navigate('/login');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      toast.error(err?.error || "Terjadi kesalahan. Silakan coba lagi.");
+      toast.error(err?.response?.data?.detail || "Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -63,6 +80,14 @@ const ResetPasswordPage = () => {
                 placeholder="Masukkan password baru"
                 required
               />
+              {formData.new_password && (
+                <p className={`text-sm mt-1 ${
+                  passwordStrength === "Kuat" ? "text-green-600" :
+                  passwordStrength === "Sedang" ? "text-yellow-500" : "text-red-500"
+                }`}>
+                  Kekuatan sandi: {passwordStrength}
+                </p>
+              )}
             </div>
             <div>
               <label className="block mb-2 text-sm text-gray-700">Konfirmasi Password</label>

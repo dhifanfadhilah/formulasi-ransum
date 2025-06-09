@@ -17,12 +17,24 @@ const ProfilePage = () => {
     new_password: '',
   });
   const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
+
+  const getPasswordStrength = (password) => {
+    if (password.length < 8) return 'Lemah';
+    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) {
+      return 'Kuat';
+    }
+    return 'Sedang';
+  };
 
   useEffect(() => {
     if (user) {
       getUserProfile(user.id).then((data) => {
         setProfile({ name: data.name || '', phone_number: data.phone_number || '' });
         setOriginal(data);
+      })
+      .catch(() => {
+        toast.error('Gagal memuat data pengguna.');
       });
     }
   }, [user]);
@@ -35,6 +47,10 @@ const ProfilePage = () => {
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === 'new_password') {
+      setPasswordStrength(getPasswordStrength(value));
+    }
   };
 
   const handleProfileSubmit = async (e) => {
@@ -56,6 +72,12 @@ const ProfilePage = () => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordMessage('');
+
+    if (passwordForm.new_password < 6) {
+      setPasswordMessage('Password minimal 6 karakter.');
+      return;
+    }
+
     try {
       await changePassword(passwordForm);
       toast.success('Password berhasil diubah.');
@@ -141,6 +163,14 @@ const ProfilePage = () => {
                 className="w-full p-2 border rounded"
                 required
               />
+              {passwordForm.new_password && (
+                <p className={`text-sm mt-1 ${
+                  passwordStrength === "Kuat" ? "text-green-600" :
+                  passwordStrength === "Sedang" ? "text-yellow-500" : "text-red-500"
+                }`}>
+                  Kekuatan sandi: {passwordStrength}
+                </p>
+              )}
             </div>
             <button
               type="submit"

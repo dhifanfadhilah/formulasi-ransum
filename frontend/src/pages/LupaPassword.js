@@ -12,7 +12,7 @@ const LupaPassword = () => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    
+
     try {
       await requestPasswordReset(email);
       toast.success("Link reset password telah dikirim. Silakan cek email Anda.");
@@ -42,7 +42,7 @@ const LupaPassword = () => {
               <label className="block mb-2 text-sm text-gray-700">Email</label>
               <input
                 type="email"
-                vallue={email}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Masukkan email Anda"

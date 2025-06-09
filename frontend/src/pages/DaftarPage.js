@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { registerUser } from './services/auth';
+import { toast } from 'react-toastify';
 
 const DaftarPage = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ const DaftarPage = () => {
   };
 
   const getPasswordStrength = (password) => {
-    if (password.length < 6) return 'Lemah';
+    if (password.length < 8) return 'Lemah';
     if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(password)) {
       return 'Kuat';
     }
@@ -50,17 +51,22 @@ const DaftarPage = () => {
     if (isLoading) return;
 
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Format email tidak valid.");
+      toast.error("Format email tidak valid.");
       return;
     }
 
     if (!validatePhoneNumber(formData.phone_number)) {
-      setError("Nomor telepon tidak valid.");
+      toast.error("Nomor telepon tidak valid.");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Kata sandi harus memiliki minimal 6 karakter.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Konfirmasi kata sandi tidak cocok.");
+      toast.error("Konfirmasi kata sandi tidak cocok.");
       return;
     }
 
@@ -72,15 +78,15 @@ const DaftarPage = () => {
         phone_number: formData.phone_number,
         password: formData.password,
       });
-      setSuccessMessage("Registrasi berhasil! Silakan cek email untuk verifikasi.");
+      toast.success("Registrasi berhasil! Silakan cek email untuk verifikasi.");
       setFormData({ name: '', email: '', phone_number: '', password: '', confirmPassword: '' });
       setPasswordStrength('');
     } catch (err) {
       if (err && typeof err === 'object') {
         const errors = Object.values(err).flat();
-        setError(errors.join(', '));
+        toast.error(errors.join(', '));
       } else {
-        setError("Registrasi gagal.");
+        toast.error("Registrasi gagal.");
       }
     } finally {
       setIsLoading(false);

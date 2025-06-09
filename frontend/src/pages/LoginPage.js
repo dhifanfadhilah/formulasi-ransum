@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from './services/auth';
 import { saveTokens, saveUser } from './services/tokenService';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '', remember_me: false });
@@ -40,7 +41,7 @@ const LoginPage = () => {
       navigate('/'); // atau dashboard
     } catch (err) {
       const msg = err?.error || 'Email atau password salah.';
-      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
