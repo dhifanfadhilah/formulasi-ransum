@@ -16,6 +16,7 @@ import PenggunaAdmin from './pages/admin/PenggunaAdmin';
 import KebutuhanNutrisiAdmin from './pages/admin/KebutuhanNutrisiAdmin';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import ProfilePage from './pages/ProfilePage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -40,6 +41,7 @@ function App() {
         <Route path="/admin/pengguna" element={<PenggunaAdmin />} />
         <Route path="/admin/kebutuhan-nutrisi" element={<KebutuhanNutrisiAdmin />} />
         <Route path="/profil" element={<ProfilePage />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
       </Routes>
     </Router>
   );

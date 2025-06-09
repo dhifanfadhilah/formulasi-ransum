@@ -44,3 +44,8 @@ export const changePassword = async (formData) => {
   const response = await API.post(`/auth/change-password/`, formData);
   return response.data;
 };
+
+export const fetchKebutuhanNutrien = async (jenisUnggasId, faseId) => {
+  const response = await API.get(`/kebutuhan-nutrien/?jenis_unggas=${jenisUnggasId}&fase=${faseId}`);
+  return response.data;
+}
