@@ -71,6 +71,9 @@ const Header = () => {
                 {/* Dropdown */}
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow animate-fade-in z-50">
+                    {user.user_type === 'admin' && (
+                      <a href="/admin/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
+                    )}
                     <a href="/profil" className="block px-4 py-2 hover:bg-gray-100">Edit Profil</a>
                     <a href="/formulasi-saya" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</a>
                     <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100">
