@@ -1,5 +1,10 @@
 import API from "./api"; // Sesuai dengan instance axios kamu
 
+export const fetchDashboardStats = async () => {
+  const response = await API.get(`admin/dashboard/`);
+  return response.data;
+};
+
 export const fetchAllUsers = async () => {
   const response = await API.get(`users/`)
   return response.data;
