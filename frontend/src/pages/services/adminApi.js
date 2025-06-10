@@ -41,3 +41,12 @@ export const updateKandungan = (id, data) =>
 
 export const deleteKandungan = (id) =>
   API.delete(`/kandungan-nutrien/${id}/`);
+
+export const createKebutuhanNutrien = (data) =>
+  API.post('/kebutuhan-nutrien/', data).then(r => r.data);
+
+export const updateKebutuhanNutrien = (id, data) =>
+  API.put(`/kebutuhan-nutrien/${id}/`, data).then(r => r.data);
+
+export const deleteKebutuhanNutrien = (id) =>
+  API.delete(`/kebutuhan-nutrien/${id}/`);

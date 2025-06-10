@@ -318,13 +318,13 @@ const BahanPakanAdmin = () => {
                   <td className="border p-2 space-x-2">
                     <button
                       onClick={() => openModal(bahan)}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs"
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(bahan.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs"
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                     >
                       Hapus
                     </button>
