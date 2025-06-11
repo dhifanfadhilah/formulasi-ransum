@@ -75,7 +75,7 @@ const Header = () => {
                       <a href="/admin/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
                     )}
                     <a href="/profil" className="block px-4 py-2 hover:bg-gray-100">Edit Profil</a>
-                    <a href="/formulasi-saya" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</a>
+                    <a href="/riwayat-formulasi" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</a>
                     <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100">
                       Logout
                     </button>

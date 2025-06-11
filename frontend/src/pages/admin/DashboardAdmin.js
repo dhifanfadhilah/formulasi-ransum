@@ -37,7 +37,7 @@ const DashboardAdmin = () => {
       <div className="p-6">
         <h2 className="text-2xl font-semibold mb-6">Dashboard Admin</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Pengguna" value={stats.total_users} />
+          <StatCard title="Total Pengguna" value={stats.total_user} />
           <StatCard title="Total Bahan Pakan" value={stats.total_bahan_pakan} />
           <StatCard title="Total Kebutuhan Nutrien" value={stats.total_kebutuhan_nutrien} />
           <StatCard title="Total Formulasi" value={stats.total_formulasi} />

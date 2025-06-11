@@ -1,7 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.core.mail import send_mail
+from django.conf import settings
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from core.serializers import RegisterSerializer
@@ -40,6 +42,30 @@ class VerifyEmailAPIView(APIView):
             return Response({'message': 'Verifikasi email berhasil'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'LInk tidak valid atau kadaluwarsa'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class TestEmailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not email:
+            return Response({'error': 'Email wajib diisi'}, status=400)
+
+        subject = "Tes Email dari Django"
+        message = "Ini adalah email percobaan dari backend Django kamu."
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False
+            )
+            return Response({'message': 'Email berhasil dikirim ke ' + email})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -76,8 +102,12 @@ class PasswordResetRequestView(APIView):
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        serializer = PasswordResetConfirmSerializer(data=request.data)
+    def post(self, request, uidb64, token):
+        data = request.data.copy()
+        data['uidb64'] = uidb64
+        data['token'] = token
+
+        serializer = PasswordResetConfirmSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password berhasil diubah."}, status=status.HTTP_200_OK)

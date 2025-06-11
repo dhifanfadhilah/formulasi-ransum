@@ -69,15 +69,19 @@ def send_activation_email(user):
 
         activation_link = f"{settings.FRONTEND_URL}/verify-email/{uid}/{token}"
 
-        subject = "Verifikasi Akun Anda"
-        message = f"Silakan klik link berikut untuk aktivasi akun Anda: \n\n{activation_link}"
+        html_message = render_to_string('emails/verify_email.html', {
+            'user': user,
+            'activation_link': activation_link
+        })
 
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email]
+        email = EmailMessage(
+            subject="Verifikasi Akun Anda",
+            body = html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
         )
+        email.content_subtype = 'html'
+        email.send()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
