@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from core.views.formulasi import FormulasiAPIView
+from core.views.formulasi import FormulasiAPIView, SimpanFormulasiAPIView
 from core.views.auth import (
     RegisterAPIView, CustomTokenObtainPairView, 
     LogoutView, VerifyEmailAPIView, ChangePasswordView,
@@ -31,6 +31,7 @@ router.register(r'hasil-formulasi', FormulasiViewSet, basename='hasil-formulasi'
 
 urlpatterns = router.urls + [
     path('formulasi/', FormulasiAPIView.as_view(), name='formulasi'),
+    path('formulasi/save/', SimpanFormulasiAPIView.as_view(), name='simpan-formulasi'),
     path('auth/register/', RegisterAPIView.as_view(), name='register'),
     path('auth/verify-email/<uidb64>/<token>/', VerifyEmailAPIView.as_view(), name='verify_email'),
     path('auth/test-email/', TestEmailAPIView.as_view(), name='test-email'),

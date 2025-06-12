@@ -338,3 +338,14 @@ class FormulasiInputSerializer(serializers.Serializer):
             )
         
         return value
+
+class KomposisiItemSerializer(serializers.Serializer):
+    bahan_pakan_id = serializers.IntegerField()
+    jumlah = serializers.FloatField()
+
+class SimpanFormulasiSerializer(serializers.Serializer):
+    nama_formulasi = serializers.CharField(max_length=100)
+    jenis_unggas = serializers.PrimaryKeyRelatedField(queryset=JenisUnggas.objects.all())
+    fase = serializers.PrimaryKeyRelatedField(queryset=FaseUnggas.objects.all())
+    komposisi = KomposisiItemSerializer(many=True)
+    total_harga = serializers.DecimalField(max_digits=12, decimal_places=2)

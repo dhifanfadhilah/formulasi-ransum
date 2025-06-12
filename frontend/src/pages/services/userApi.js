@@ -25,11 +25,6 @@ export const fetchBahanPakanByKategori = async (kategori) => {
     return response.data;
 };
 
-export const postFormulasi = async (payload) => {
-  const response = await API.post(`/formulasi/`, payload);
-  return response.data;
-};
-
 export const getUserProfile = async (userId) => {
   const response = await API.get(`/users/${userId}/`);
   return response.data;

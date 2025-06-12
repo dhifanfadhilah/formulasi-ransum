@@ -1,13 +1,9 @@
 from scipy.optimize import linprog
 import numpy as np
 from core.models import KandunganNutrien, KebutuhanNutrien, Nutrien
+from decimal import Decimal
 
 def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
-    """
-    Fungsi untuk menghitung komposisi bahan pakan optimal 
-    dengan Linear Programming
-    """
-
     # Ambil kebutuhan nutrien untuk jenis unggas & fase tertentu
     kebutuhan_qs = KebutuhanNutrien.objects.filter(jenis_unggas=jenis_unggas, fase=fase)
 
@@ -38,10 +34,8 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
             kandungan = KandunganNutrien.objects.filter(
                 bahan_pakan=bahan, nutrien=nutrien
             ).first()
-            nilai = float(kandungan.nilai) if kandungan else 0.0
+            nilai = float(kandungan.nilai) / 100 if kandungan else 0.0
             row.append(nilai)
-            print(f"Nutrien: {nutrien.nama}")
-            print("Baris nutrien:", row)
 
         # Tambahkan kendala batas bawah (min_value): -Ax ≤ -b
         if kebutuhan.min_value is not None:
@@ -71,9 +65,34 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
     A_eq = [np.ones(len(bahan_pakan_list)).tolist()]
     b_eq = [100.0]
 
-    print("A_ub = ", A_ub)
-    print("b_ub = ", b_ub)
-    print("bounds = ", bounds)
+    diagnosis = []
+    for nutrien in nutrien_objs:
+        # Ambil baris kandungan nutrien yg barusan kita buat
+        row = []
+        for bahan in bahan_pakan_list:
+            kandungan = KandunganNutrien.objects.filter(
+                bahan_pakan=bahan, nutrien=nutrien
+            ).first()
+            row.append(float(kandungan.nilai) / 100 if kandungan else 0.0)
+
+        # Hitung *rentang* yang bisa dicapai dgn bounds tiap bahan
+        min_possible = sum(row[i] * bounds[i][0] for i in range(len(bounds)))
+        max_possible = sum(row[i] * bounds[i][1] for i in range(len(bounds)))
+
+        kebutuhan = kebutuhan_qs.filter(nutrien=nutrien).first()
+        diagnosis.append({
+            "nutrien"        : nutrien.nama,
+            "dibutuhkan_min" : kebutuhan.min_value,
+            "dibutuhkan_max" : kebutuhan.max_value,
+            "bisa_min"       : round(min_possible, 4),
+            "bisa_max"       : round(max_possible, 4),
+        })
+
+    # Cetak ke log terminal / gunicorn / console
+    print("=== DIAGNOSA NUTRIEN ===")
+    for d in diagnosis:
+        print(d)
+    print("=== END DIAGNOSA ===")
 
     # Hitung LP menggunakan solver 'highs' dari SciPy
     result = linprog(
@@ -96,15 +115,16 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
                 {
                     'bahan_pakan_id': bahan.id,
                     'nama': bahan.nama,
-                    'jumlah': round(sol, 4)  # pembulatan untuk presentasi
+                    'jumlah': round(sol, 4),  # pembulatan untuk presentasi
+                    'harga': bahan.harga * Decimal(str(sol)) / Decimal('100')
                 }
                 for bahan, sol in zip(bahan_pakan_list, solusi)
             ],
-            'total_biaya': round(sum(bahan.harga * sol / 100 for bahan, sol in zip(bahan_pakan_list, solusi)), 2)
+            'total_biaya': round(sum(bahan.harga * Decimal(str(sol)) / Decimal('100') for bahan, sol in zip(bahan_pakan_list, solusi)), 2)
         }
     else:
         # Jika gagal, kembalikan pesan error
         return {
             'status': 'failed',
-            'message': 'Formulasi gagal dihitung. {result.message}'
+            'message': f'Formulasi gagal dihitung. {result.message}'
         }

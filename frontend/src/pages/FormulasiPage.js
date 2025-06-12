@@ -4,8 +4,10 @@ import Footer from '../components/Footer';
 import { 
   fetchJenisUnggas, fetchBahanPakan, fetchFaseByJenisUnggas,
   fetchBahanPakanByKategori,
-  postFormulasi,
 } from './services/userApi';
+import { postFormulasi } from './services/formulasiApi';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const FormulasiPage = () => {
   const [jenisUnggas, setJenisUnggas] = useState([]);
@@ -17,6 +19,8 @@ const FormulasiPage = () => {
   const [sumberProtein, setSumberProtein] = useState([]);
   const [mineralPrefix, setMineralPrefix] = useState([]);
   const [selectedBahanPakan, setSelectedBahanPakan] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleCheckboxChange = (e) => {
     const id = parseInt(e.target.value);
@@ -27,9 +31,27 @@ const FormulasiPage = () => {
     );
   }
 
+  const validateKategoriTerpenuhi = () => {
+    const energiIds = sumberEnergi.map(item => item.id);
+    const proteinIds = sumberProtein.map(item => item.id);
+    const mineralIds = mineralPrefix.map(item => item.id);
+
+    const hasEnergi = selectedBahanPakan.some(id => energiIds.includes(id));
+    const hasProtein = selectedBahanPakan.some(id => proteinIds.includes(id));
+    const hasMineral = selectedBahanPakan.some(id => mineralIds.includes(id));
+
+    return hasEnergi && hasProtein && hasMineral;
+  };
+
+
   const handleFormulasi = async () => {
     if(!selectedJenis || !selectedFase || selectedBahanPakan.length === 0){
       alert("Mohon Lengkapi semua pilihan sebelum melakukan formulasi.");
+      return;
+    }
+
+    if (!validateKategoriTerpenuhi()) {
+      alert("Pilihan bahan pakan harus memenuhi kategori energi, protein, dan mineral.");
       return;
     }
 
@@ -43,17 +65,20 @@ const FormulasiPage = () => {
       fase: parseInt(selectedFase),
       bahan_pakan_ids: selectedBahanPakan
     };
+    setLoading(true);
 
     try {
       const result = await postFormulasi(payload);
       console.log('Hasil Formulasi:', result);
-      alert("Formulasi berhasil dilakukan.");
+      navigate('/hasil-formulasi', { state: {hasilFormulasi: result} });
     } catch (error) {
       console.error('Gagal melakukan formulasi:', error);
-      alert('Terjadi kesalahan saat formulasi.')
+      toast.error("Gagal melakukan formulasi.");
+    } finally {
+      setLoading(false);
     }
 
-    console.log(payload);
+    
   };
 
   useEffect(() => {
@@ -212,8 +237,9 @@ const FormulasiPage = () => {
           <button 
             className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg rounded shadow"
             onClick={handleFormulasi}
+            disabled={loading}
           >
-            Formulasi
+            {loading ? 'Memproses...' : 'Formulasi'}
           </button>
         </div>
       </main>
