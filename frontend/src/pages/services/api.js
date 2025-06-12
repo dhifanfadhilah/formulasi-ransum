@@ -47,10 +47,19 @@ API.interceptors.response.use(
         originalRequest.headers['Authorization'] = `Bearer ${access}`;
         return API(originalRequest);
       } catch (err) {
+        console.error("Token refresh gagal:", err);
         clearTokens();
+        alert("Sesi berakhir. Silakan login kembali.");
         window.location.href = '/login';
         return Promise.reject(err);
       }
+    }
+
+    if (error.response?.status === 403) {
+      console.warn("Akses ditolak. Anda mungkin tidak memiliki izin.");
+      alert("Sesi Anda telah berakhir atau akses ditolak. Silakan login ulang.");
+      clearTokens();
+      window.location.href = '/';
     }
 
     return Promise.reject(error);
