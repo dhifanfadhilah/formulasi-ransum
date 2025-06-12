@@ -1,23 +1,32 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { fetchFormulasiById } from "./services/formulasiApi";
+import { toast } from "react-toastify";
 
 const DetailFormulasi = () => {
-  // Dummy data untuk contoh
-  const formulasi = {
-    unggas: "Ayam Broiler",
-    fase: "Starter",
-    tanggal: "27 April 2025",
-    bahan: [
-      { nama: "Jagung", persentase: 50, hargaPerKg: 5000 },
-      { nama: "Bungkil Kedelai", persentase: 30, hargaPerKg: 8000 },
-      { nama: "Dedak Halus", persentase: 15, hargaPerKg: 4000 },
-      { nama: "Premix Mineral", persentase: 5, hargaPerKg: 15000 },
-    ],
-  };
+  const { id } = useParams();
+  const [formulasi, setFormulasi] = useState(null);
 
-  const totalHarga = formulasi.bahan.reduce((acc, item) => {
-    return acc + (item.persentase / 100) * item.hargaPerKg;
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const data = await fetchFormulasiById(id);
+        setFormulasi(data);
+      } catch (err) {
+        toast.error("Gagal memuat detail formulasi.");
+      }
+    };
+    getData();
+  }, [id]);
+
+  if (!formulasi) {
+    return <div className="p-6 text-center">Loading...</div>;
+  }
+
+  const totalHarga = formulasi.bahan_formulasi.reduce((acc, item) => {
+    return acc + item.jumlah * item.bahan_pakan.harga;
   }, 0);
 
   return (
@@ -29,9 +38,9 @@ const DetailFormulasi = () => {
           <h1 className="text-2xl md:text-3xl font-bold mb-4">Detail Formulasi</h1>
 
           <div className="mb-6">
-            <p className="text-gray-700"><span className="font-semibold">Unggas:</span> {formulasi.unggas}</p>
-            <p className="text-gray-700"><span className="font-semibold">Fase:</span> {formulasi.fase}</p>
-            <p className="text-gray-700"><span className="font-semibold">Tanggal:</span> {formulasi.tanggal}</p>
+            <p className="text-gray-700"><span className="font-semibold">Unggas:</span> {formulasi.unggas.nama}</p>
+            <p className="text-gray-700"><span className="font-semibold">Fase:</span> {formulasi.fase.nama}</p>
+            <p className="text-gray-700"><span className="font-semibold">Tanggal:</span> {new Date(formulasi.created_at).toLocaleDateString()}</p>
           </div>
 
           {/* Tabel bahan */}
@@ -46,13 +55,13 @@ const DetailFormulasi = () => {
                 </tr>
               </thead>
               <tbody>
-                {formulasi.bahan.map((item, index) => (
+                {formulasi.bahan_formulasi.map((item, index) => (
                   <tr key={index} className="border-b">
-                    <td className="py-3 px-4">{item.nama}</td>
-                    <td className="py-3 px-4">{item.persentase}</td>
-                    <td className="py-3 px-4">{item.hargaPerKg.toLocaleString()}</td>
+                    <td className="py-3 px-4">{item.bahan_pakan.nama}</td>
+                    <td className="py-3 px-4">{item.jumlah}</td>
+                    <td className="py-3 px-4">{item.bahan_pakan.harga.toLocaleString()}</td>
                     <td className="py-3 px-4">
-                      {((item.persentase / 100) * item.hargaPerKg).toLocaleString()}
+                       {(item.jumlah * item.bahan_pakan.harga).toLocaleString()}
                     </td>
                   </tr>
                 ))}

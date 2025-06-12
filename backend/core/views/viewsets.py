@@ -103,7 +103,7 @@ class BahanFormulasiViewSet(viewsets.ReadOnlyModelViewSet):
 class FormulasiViewSet(viewsets.ModelViewSet):
     queryset = Formulasi.objects.all()
     serializer_class = FormulasiSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['unggas', 'fase']
 
