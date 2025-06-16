@@ -4,7 +4,8 @@ from core.views.formulasi import FormulasiAPIView, SimpanFormulasiAPIView
 from core.views.auth import (
     RegisterAPIView, CustomTokenObtainPairView, 
     LogoutView, VerifyEmailAPIView, ChangePasswordView,
-    PasswordResetRequestView, PasswordResetConfirmView, TestEmailAPIView
+    PasswordResetRequestView, PasswordResetConfirmView, TestEmailAPIView,
+    MeAPIView
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, TokenRefreshView
@@ -37,6 +38,7 @@ urlpatterns = router.urls + [
     path('auth/test-email/', TestEmailAPIView.as_view(), name='test-email'),
     path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/me/', MeAPIView.as_view(), name='auth-me'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
     path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('auth/password-reset-request/', PasswordResetRequestView.as_view(), name='password-reset-request'),

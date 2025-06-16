@@ -9,6 +9,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
+from django.db import transaction
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from .models import (
@@ -16,6 +17,9 @@ from .models import (
     BahanPakan, Nutrien, KandunganNutrien,
     KebutuhanNutrien, Formulasi, BahanFormulasi
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -48,7 +52,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         validate_password(value)
         return value
 
+    @transaction.atomic
     def create(self, validated_data):
+        
         user = User(
             email=validated_data['email'],
             name=validated_data['name'],
@@ -58,12 +64,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
-
-        send_activation_email(user)
-
+        
+        try:
+            send_activation_email(user)
+        except Exception as e:
+            raise serializers.ValidationError("Registraisasi gagal. Gagal mengirim email verifikasi.")
         return user
     
 def send_activation_email(user):
+    try: 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
 
@@ -82,6 +91,10 @@ def send_activation_email(user):
         )
         email.content_subtype = 'html'
         email.send()
+    except Exception as e:
+        logger.error(f"Gagal mengirim email verifikasi ke {user.email}: {str(e)}.")
+        logger.info(f"Link verifikasi email untuk {user.email}: {activation_link}")
+        raise
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):

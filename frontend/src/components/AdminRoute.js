@@ -1,15 +1,18 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { Navigate, Outlet } from 'react-router-dom';
+import { getUser } from '../pages/services/tokenService';
 
 const AdminRoute = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
+  const user = getUser();
 
-  if (!isAuthenticated || user?.user_type !== 'admin') {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  if (user.user_type !== "admin") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default AdminRoute;

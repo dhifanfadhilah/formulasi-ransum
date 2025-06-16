@@ -1,15 +1,14 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { Navigate, Outlet } from "react-router-dom";
+import { getUser } from "../pages/services/tokenService";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+const ProtectedRoute = () => {
+  const user = getUser();
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

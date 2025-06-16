@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
-from core.serializers import RegisterSerializer
+from core.serializers import RegisterSerializer, UserSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from core.serializers import (
@@ -21,10 +21,15 @@ class RegisterAPIView(APIView):
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Registrasi berhasil"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Registrasi berhasil"}, status=status.HTTP_201_CREATED)
+            print("REGISTER ERROR:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print("REGISTER ERROR:", str(e))
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyEmailAPIView(APIView):
     permission_classes = [AllowAny]
@@ -69,6 +74,13 @@ class TestEmailAPIView(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class MeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
