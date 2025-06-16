@@ -11,13 +11,10 @@ const Header = () => {
   const navigate = useNavigate();
   const profileRef = useRef();
 
-  const isActive = (path) => location.pathname === path;
-
   useEffect(() => {
     const access = getAccessToken();
     const user = getUser();
-
-    if (!access || !user){
+    if (!access || !user) {
       setUserData(null);
       clearUser();
       clearTokens();
@@ -26,7 +23,6 @@ const Header = () => {
     }
   }, [location]);
 
-  // Tutup dropdown saat klik di luar
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -42,40 +38,51 @@ const Header = () => {
     clearTokens();
     clearUser();
     setUserData(null);
-    navigate('/login');
+    navigate('/');
   };
 
-  return (
-    <header className="bg-green-700 text-white shadow-md">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold">PakanUnggas</a>
+  const isActive = (path) => location.pathname === path;
 
-        {/* Hamburger menu */}
+  return (
+    <header className="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" className="text-xl font-bold tracking-wide">PakanUnggas</a>
+
+        {/* Hamburger - Mobile */}
         <button
+          className="md:hidden focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-white focus:outline-none"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}
             viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round"
               d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
           </svg>
         </button>
 
-        {/* Nav links */}
-        <nav className={`absolute md:static top-16 left-0 w-full md:w-auto bg-green-700 md:bg-transparent z-50 
-                        md:flex items-center ${menuOpen ? 'block' : 'hidden'} md:block`}>
-          <ul className="flex flex-col md:flex-row gap-4 md:gap-6 px-4 py-2 md:p-0">
-            <li><a href="/" className={`hover:underline ${isActive('/') ? 'underline' : ''}`}>Beranda</a></li>
-            <li><a href="/formulasi" className={`hover:underline ${isActive('/formulasi') ? 'underline' : ''}`}>Formulasi</a></li>
-            <li><a href="/informasi-nutrisi" className={`hover:underline ${isActive('/informasi-nutrisi') ? 'underline' : ''}`}>Informasi Nutrisi</a></li>
+        {/* Navigation */}
+        <nav className={`absolute md:static top-16 left-0 w-full md:w-auto bg-green-700 md:bg-transparent transition-all duration-200 
+                        md:flex md:items-center ${menuOpen ? 'block' : 'hidden'} md:block z-40`}>
+          <ul className="flex flex-col md:flex-row gap-4 md:gap-6 px-4 py-2 md:p-0 text-sm font-medium">
+            <li>
+              <a href="/" className={`hover:underline ${isActive('/') && 'underline'}`}>Beranda</a>
+            </li>
+            <li>
+              <a href="/formulasi" className={`hover:underline ${isActive('/formulasi') && 'underline'}`}>Formulasi</a>
+            </li>
+            <li>
+              <a href="/informasi-nutrisi" className={`hover:underline ${isActive('/informasi-nutrisi') && 'underline'}`}>Informasi Nutrisi</a>
+            </li>
+
             {!userData ? (
-              <li><a href="/login" className="hover:underline">Login</a></li>
+              <li>
+                <a href="/login" className="hover:underline">Login</a>
+              </li>
             ) : (
               <li ref={profileRef} className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 hover:underline"
+                  className="flex items-center gap-1 hover:underline focus:outline-none"
                 >
                   <span>{userData.name}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
@@ -87,14 +94,17 @@ const Header = () => {
 
                 {/* Dropdown */}
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow animate-fade-in z-50">
+                  <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded-xl shadow-md overflow-hidden z-50 animate-fade-in text-sm">
                     {userData.user_type === 'admin' && (
                       <a href="/admin/dashboard" className="block px-4 py-2 hover:bg-gray-100">Admin</a>
                     )}
-                    <a href="dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
+                    <a href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
                     <a href="/profil" className="block px-4 py-2 hover:bg-gray-100">Edit Profil</a>
                     <a href="/riwayat-formulasi" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</a>
-                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
                       Logout
                     </button>
                   </div>

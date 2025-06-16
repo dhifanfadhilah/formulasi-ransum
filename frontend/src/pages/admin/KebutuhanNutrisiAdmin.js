@@ -93,9 +93,9 @@ const KebutuhanNutrisiAdmin = () => {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <HeaderAdmin />
-      <div className="container mx-auto mt-6 px-4">
+      <div className="container mx-auto mt-6 px-4 flex-grow">
         <h2 className="text-xl font-bold mb-4">Manajemen Kebutuhan Nutrisi Unggas</h2>
 
         <div className="flex flex-wrap gap-4 items-center mb-4">
@@ -124,7 +124,7 @@ const KebutuhanNutrisiAdmin = () => {
             <option value="">Pilih Fase</option>
             {faseList.map((f) => (
               <option key={f.id} value={f.fase}>
-                {f.fase_nama}
+                {f.fase_nama.charAt(0).toUpperCase() + f.fase_nama.slice(1)}
               </option>
             ))}
           </select>
@@ -264,7 +264,7 @@ const KebutuhanNutrisiAdmin = () => {
         </div>
       )}
       <FooterAdmin />
-    </>
+    </div>
   );
 };
 

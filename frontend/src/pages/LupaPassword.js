@@ -31,7 +31,7 @@ const LupaPassword = () => {
 
       <main className="flex-grow flex items-center justify-center bg-gray-100 px-4">
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-          <h2 className="text-2xl font-bold text-center mb-6 text-green-600">
+          <h2 className="text-3xl font-bold text-center text-green-700">
             Lupa Password
           </h2>
           <p className="text-center text-gray-600 mb-6">

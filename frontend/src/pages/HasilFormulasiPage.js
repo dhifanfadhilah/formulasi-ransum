@@ -7,6 +7,7 @@ import autoTable from "jspdf-autotable";
 import { postSimpanFormulasi } from "./services/formulasiApi";
 import { toast } from "react-toastify";
 import { getUser } from "./services/tokenService";
+import { Download, PlusCircle, Repeat } from "lucide-react";
 
 const HasilFormulasiPage = () => {
   const location = useLocation();
@@ -155,7 +156,8 @@ const HasilFormulasiPage = () => {
       toast.success("Formulasi berhasil disimpan!");
       setShowModal(false);
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || "Gagal menyimpan formulasi.";
+      const errorMsg =
+        err.response?.data?.detail || "Gagal menyimpan formulasi.";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -167,96 +169,116 @@ const HasilFormulasiPage = () => {
     <div className="min-h-screen bg-white text-gray-800">
       <Header />
       <main className="container mx-auto py-10 px-4">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Hasil Formulasi Ransum
-        </h2>
-        <h3 className="text-2xl font-semibold mb-2">Detail Hasil Formulasi</h3>
-        <p className="text-lg mb-6">
-          Berikut adalah hasil formulasi pakan berdasarkan bahan pakan dan jenis
-          unggas yang Anda pilih.
-        </p>
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-bold text-gray-800 mb-2">
+            Hasil Formulasi Ransum
+          </h2>
+          <p className="text-lg text-gray-600">
+            Komposisi pakan unggas berdasarkan bahan dan kebutuhan nutrien
+          </p>
+        </div>
 
-        <h4 className="text-lg font-semibold mb-1">
-          Jenis Unggas:{" "}
-          <span className="font-semibold">
-            {hasilFormulasi.data?.jenis_unggas?.nama}
-          </span>
-        </h4>
-        <h4 className="text-lg font-semibold mb-1">
-          Fase:{" "}
-          <span className="font-semibold">
-            {hasilFormulasi.data?.fase?.nama}
-          </span>
-        </h4>
+        {/* Info Ringkas */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+            <p className="text-gray-500 text-sm">Jenis Unggas</p>
+            <p className="text-xl font-semibold text-gray-800">
+              {hasilFormulasi.data?.jenis_unggas?.nama}
+            </p>
+          </div>
+          <div className="p-4 border rounded-lg shadow-sm bg-gray-50">
+            <p className="text-gray-500 text-sm">Fase Pemeliharaan</p>
+            <p className="text-xl font-semibold text-gray-800">
+              {hasilFormulasi.data?.fase?.nama.charAt(0).toUpperCase() +
+                hasilFormulasi.data?.fase?.nama.slice(1)}
+            </p>
+          </div>
+        </div>
 
-        <table className="w-full border border-gray-300 mb-6 text-sm md:text-base">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-4 py-2 text-left">Bahan Pakan</th>
-              <th className="border px-4 py-2 text-left">Persentase (%)</th>
-              <th className="border px-4 py-2 text-left">Harga (Rp/kg)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hasilFormulasi.data?.komposisi?.map((item, idx) => (
-              <tr key={item.bahan_pakan_id}>
-                <td className="border px-4 py-2">{item.nama}</td>
-                <td className="border px-4 py-2">{item.jumlah.toFixed(2)}</td>
-                <td className="border px-4 py-2">
-                  Rp {item.harga?.toLocaleString("id-ID")}
-                </td>
+        {/* Tabel Hasil */}
+        <div className="overflow-x-auto mb-6">
+          <table className="min-w-full text-sm border border-gray-300 rounded">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="text-left px-4 py-2 border">Bahan Pakan</th>
+                <th className="text-left px-4 py-2 border">Persentase (%)</th>
+                <th className="text-left px-4 py-2 border">Harga (Rp/kg)</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {[...hasilFormulasi.data?.komposisi]
+              .sort((a, b) => b.jumlah - a.jumlah)
+              .map((item, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-gray-50 transition-colors border-b"
+                >
+                  <td className="px-4 py-2 border">{item.nama}</td>
+                  <td className="px-4 py-2 border">{item.jumlah.toFixed(2)}</td>
+                  <td className="px-4 py-2 border">
+                    Rp {item.harga?.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <div className="text-right text-xl font-semibold mb-10">
+        {/* Total Biaya */}
+        <div className="text-right text-xl font-semibold text-gray-700 mb-10">
           Total Biaya: Rp{" "}
           {hasilFormulasi.data?.total_biaya.toLocaleString("id-ID")} /kg
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 justify-center">
+        {/* Tombol Aksi */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
             onClick={downloadPDF}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded shadow"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded shadow"
           >
-            Unduh Hasil Formulasi
+            <Download size={18} /> Unduh PDF
           </button>
           <a
             href="/formulasi"
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded shadow text-center"
+            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded shadow"
           >
-            Formulasi Lagi
+            <Repeat size={18} /> Formulasi Lagi
           </a>
           {user ? (
             <button
               onClick={() => setShowModal(true)}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded shadow"
+              className="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded shadow"
             >
-              Simpan Formulasi
+              <PlusCircle size={18} /> Simpan Formulasi
             </button>
           ) : (
-            <p className="text-sm text-gray-500">Login untuk menyimpan hasil formulasi.</p>
+            <p className="text-sm text-gray-500 text-center">
+              Login untuk menyimpan hasil formulasi.
+            </p>
           )}
         </div>
       </main>
+
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-11/12 max-w-md shadow-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Simpan Formulasi</h2>
+
             {error && <p className="text-red-600 mb-2">{error}</p>}
             {success && <p className="text-green-600 mb-2">{success}</p>}
+
             <input
               type="text"
-              placeholder="Nama formulasi"
+              placeholder="Masukkan nama formulasi..."
               value={namaFormulasi}
               onChange={(e) => setNamaFormulasi(e.target.value)}
               className="w-full border px-4 py-2 rounded mb-4"
             />
-            <div className="flex justify-end space-x-2">
+
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded"
               >
                 Batal
               </button>

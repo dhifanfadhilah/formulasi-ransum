@@ -58,9 +58,9 @@ const PenggunaAdmin = () => {
   );
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <HeaderAdmin />
-      <main className="p-4 md:p-8 max-w-6xl mx-auto">
+      <main className="p-4 md:p-8 max-w-6xl mx-auto flex-grow">
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold">Manajemen Pengguna</h2>
           <input
@@ -136,7 +136,7 @@ const PenggunaAdmin = () => {
         </div>
       </main>
       <FooterAdmin />
-    </>
+    </div>
   );
 };
 

@@ -113,7 +113,7 @@ const RiwayatFormulasi = () => {
                   >
                     <td className="py-3 px-4">{formulasi.nama_formulasi}</td>
                     <td className="py-3 px-4">{formulasi.unggas.nama}</td>
-                    <td className="py-3 px-4">{formulasi.fase.nama}</td>
+                    <td className="py-3 px-4">{formulasi.fase.nama.charAt(0).toUpperCase() + formulasi.fase.nama.slice(1)}</td>
                     <td className="py-3 px-4">
                       {new Date(formulasi.created_at).toLocaleDateString(
                         "id-ID"
