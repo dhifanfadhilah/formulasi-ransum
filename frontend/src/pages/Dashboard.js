@@ -32,9 +32,14 @@ const Dashboard = () => {
   if (loading) return <div className="p-8">Memuat...</div>;
 
   const totalFormulasi = formulasi.length;
+
+  const sortedFormulasi = [...formulasi].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  );
+
   const formulasiTerakhir =
     formulasi.length > 0
-      ? new Date(formulasi[0].created_at).toLocaleDateString("id-ID", {
+      ? new Date(sortedFormulasi[0].created_at).toLocaleDateString("id-ID", {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -82,7 +87,7 @@ const Dashboard = () => {
               to="/riwayat-formulasi"
               className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg text-center"
             >
-              Lihat Riwayat Formulasi
+              Lihat Formulasi Tersimpan
             </Link>
             <Link
               to="/profil"

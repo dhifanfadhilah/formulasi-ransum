@@ -5,7 +5,7 @@ from core.views.auth import (
     RegisterAPIView, CustomTokenObtainPairView, 
     LogoutView, VerifyEmailAPIView, ChangePasswordView,
     PasswordResetRequestView, PasswordResetConfirmView, TestEmailAPIView,
-    MeAPIView
+    MeAPIView, GoogleLogin, CustomGoogleLogin
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, TokenRefreshView
@@ -37,6 +37,8 @@ urlpatterns = router.urls + [
     path('auth/verify-email/<uidb64>/<token>/', VerifyEmailAPIView.as_view(), name='verify_email'),
     path('auth/test-email/', TestEmailAPIView.as_view(), name='test-email'),
     path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('auth/google/', GoogleLogin.as_view(), name='google_login'),
+    path('auth/google/', CustomGoogleLogin.as_view(), name='google_login_custom'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/me/', MeAPIView.as_view(), name='auth-me'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),

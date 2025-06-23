@@ -70,9 +70,11 @@ const RiwayatFormulasi = () => {
     doc.save(`${formulasi.nama_formulasi}.pdf`);
   };
 
-  const filtered = formulasiList.filter((f) =>
-    f.nama_formulasi.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = formulasiList
+    .filter((f) =>
+      f.nama_formulasi.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -81,7 +83,7 @@ const RiwayatFormulasi = () => {
       <main className="flex-1 p-4 md:p-8 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-6">
-            Riwayat Formulasi
+            Formulasi Tersimpan
           </h1>
 
           <input

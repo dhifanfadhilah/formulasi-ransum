@@ -19,6 +19,20 @@ export const loginUser = async (credentials) => {
   }
 };
 
+export const loginWithGoogle = async (idTOken) => {
+  try {
+    console.log('Sending Google login request with token', idTOken);
+    const response = await API.post('/auth/google/', {
+      id_token: idTOken,
+    });
+    console.log('Google login response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Google login error:', error.response?.data);
+    throw error;
+  }
+};
+
 export const logoutUser = async () => {
   const refresh = getRefreshToken();
 

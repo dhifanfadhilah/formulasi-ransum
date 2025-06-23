@@ -21,6 +21,14 @@ API.interceptors.request.use(config => {
   return config;
 });
 
+API.interceptors.response.use((config) => {
+  const token = document.querySelector('[name-csrfmiddlewaretoken]');
+  if (token) {
+    config.headers['X-CSRFToken'] = token.value;
+  }
+  return config
+})
+
 API.interceptors.response.use(
   res => res,
   async error => {

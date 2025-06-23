@@ -1,3 +1,5 @@
+import{ jwtDecode } from 'jwt-decode';
+
 const ACCESS_KEY = 'access';
 const REFRESH_KEY = 'refresh';
 const USER_KEY = 'user';
@@ -37,4 +39,17 @@ export const getUser = () => {
 
 export const clearUser = () => {
   localStorage.removeItem(USER_KEY);
+};
+
+export const checkTokenExpiry = () => {
+  const token = localStorage.getItem('access') || sessionStorage.getItem('access');
+  if (!token) return false;
+
+  try {
+    const { exp } = jwtDecode(token);
+    const now = Date.now() / 1000;
+    return exp > now; // true jika token masih valid
+  } catch (e) {
+    return false;
+  }
 };

@@ -6,15 +6,30 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from core.serializers import RegisterSerializer, UserSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from google.auth.transport import requests
+from google.oauth2 import id_token
 from core.serializers import (
     CustomTokenObtainPairSerializer, LogoutSerializer, 
     ChangePasswordSerializer, PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer
 )
 from core.models import User
+import logging
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
@@ -74,6 +89,97 @@ class TestEmailAPIView(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GoogleLogin(SocialLoginView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "postmessage"  # Khusus untuk one-tap login
+    client_class = OAuth2Client
+
+    def post(self, request, *args, **kwargs):
+        logger.debug("Google Login request body: %s", request.data)
+        logger.debug("Google Login request headers: %s", request.headers)
+
+        if 'id_token' in request.data:
+            request.data['access_token'] = request.data.pop('id_token')
+
+        try:
+            response = super().post(request, *args, **kwargs)
+            logger.debug("Google Login response: %s", response.data)
+            return response
+        except Exception as e:
+            logger.error("Google Login error: %s", str(e))
+            raise
+
+class CustomGoogleLogin(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        try:
+            token = request.data.get('id_token')
+            if not token:
+                return Response({'error': 'ID token is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify the token with Google
+            try:
+                # Get client ID from settings
+                client_id = settings.SOCIALACCOUNT_PROVIDERS['google']['APP']['client_id']
+                
+                idinfo = id_token.verify_oauth2_token(
+                    token, 
+                    requests.Request(), 
+                    client_id
+                )
+                
+                if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                    return Response({'error': 'Invalid token issuer'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            except ValueError as e:
+                return Response({'error': f'Invalid token: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            email = idinfo.get('email')
+            name = idinfo.get('name', '')
+            
+            if not email:
+                return Response({'error': 'Email not provided by Google'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create or get user
+            with transaction.atomic():
+                user, created = User.objects.get_or_create(
+                    email=email,
+                    defaults={
+                        'name': name,
+                        'user_type': 'user',
+                        'is_active': True,
+                    }
+                )
+                
+                if created:
+                    user.set_unusable_password()
+                    user.save()
+                elif not user.name and name:
+                    user.name = name
+                    user.save()
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = refresh.access_token
+            
+            return Response({
+                'access': str(access_token),
+                'refresh': str(refresh),
+                'user_id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'user_type': user.user_type,
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Google login error: {str(e)}")
+            return Response({'error': 'Login failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]

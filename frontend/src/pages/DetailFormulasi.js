@@ -85,10 +85,10 @@ const DetailFormulasi = () => {
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
                     <td className="py-3 px-4">{item.bahan_pakan.nama}</td>
-                    <td className="py-3 px-4">{item.jumlah}</td>
-                    <td className="py-3 px-4">{item.bahan_pakan.harga.toLocaleString()}</td>
+                    <td className="py-3 px-4">{item.jumlah} %</td>
+                    <td className="py-3 px-4">Rp {item.bahan_pakan.harga.toLocaleString("id-ID")}</td>
                     <td className="py-3 px-4">
-                      {(item.jumlah * item.bahan_pakan.harga).toLocaleString()}
+                      Rp {(item.jumlah * item.bahan_pakan.harga).toLocaleString("id-ID")}
                     </td>
                   </tr>
                 ))}

@@ -81,8 +81,8 @@ const HasilFormulasiPage = () => {
     const tableData = komposisi.map((item) => [
       item.nama,
       `${item.jumlah.toFixed(2)} %`,
-      `Rp ${item.harga.toLocaleString("id-ID")}`,
-      `Rp ${((item.jumlah / 100) * item.harga).toFixed(2)}`,
+      `Rp ${item.harga_per_kg?.toLocaleString("id-ID") || 0}`,
+      `Rp ${item.harga?.toLocaleString("id-ID") || 0}`,
     ]);
 
     autoTable(doc, {
@@ -201,8 +201,9 @@ const HasilFormulasiPage = () => {
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="text-left px-4 py-2 border">Bahan Pakan</th>
-                <th className="text-left px-4 py-2 border">Persentase (%)</th>
                 <th className="text-left px-4 py-2 border">Harga (Rp/kg)</th>
+                <th className="text-left px-4 py-2 border">Persentase (%)</th>
+                <th className="text-left px-4 py-2 border">Subtotal (Rp)</th>
               </tr>
             </thead>
             <tbody>
@@ -214,7 +215,10 @@ const HasilFormulasiPage = () => {
                   className="hover:bg-gray-50 transition-colors border-b"
                 >
                   <td className="px-4 py-2 border">{item.nama}</td>
-                  <td className="px-4 py-2 border">{item.jumlah.toFixed(2)}</td>
+                  <td className="px-4 py-2 border">
+                    Rp {item.harga_per_kg?.toLocaleString("id-ID")}
+                  </td>
+                  <td className="px-4 py-2 border">{item.jumlah.toFixed(2)} %</td>
                   <td className="px-4 py-2 border">
                     Rp {item.harga?.toLocaleString("id-ID")}
                   </td>

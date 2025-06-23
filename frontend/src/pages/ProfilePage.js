@@ -6,7 +6,7 @@ import { getUser } from './services/tokenService';
 import { toast } from 'react-toastify';
 
 const ProfilePage = () => {
-  const user = getUser();
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState({ name: '', phone_number: '' });
   const [original, setOriginal] = useState({});
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,14 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    const currentUser = getUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user && !original.email) {
       getUserProfile(user.id)
         .then((data) => {
           setProfile({ name: data.name || '', phone_number: data.phone_number || '' });

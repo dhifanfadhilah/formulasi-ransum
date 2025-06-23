@@ -1,14 +1,18 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import HeaderAdmin from "../../components/HeaderAdmin";
 import FooterAdmin from "../../components/FooterAdmin";
-import { 
-  fetchAllUsers, updateUserByAdmin, deleteUserByAdmin
+import {
+  fetchAllUsers,
+  updateUserByAdmin,
+  deleteUserByAdmin,
 } from "../services/adminApi";
 import { toast } from "react-toastify";
 
 const PenggunaAdmin = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -41,13 +45,21 @@ const PenggunaAdmin = () => {
     }
   };
 
+  const confirmDelete = (id) => {
+    setSelectedUserId(id);
+    setShowConfirmModal(true);
+  };
+
   const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus pengguna ini?")) return;
     try {
       await deleteUserByAdmin(id);
       fetchUsers();
+      toast.success("Pengguna berhasil dihapus");
     } catch (error) {
       toast.error("Gagal menghapus pengguna");
+    } finally {
+      setShowConfirmModal(false);
+      setSelectedUserId(null);
     }
   };
 
@@ -91,7 +103,9 @@ const PenggunaAdmin = () => {
                   <td className="border px-3 py-2">{index + 1}</td>
                   <td className="border px-3 py-2">{user.name}</td>
                   <td className="border px-3 py-2">{user.email}</td>
-                  <td className="border px-3 py-2">{user.phone_number || "-"}</td>
+                  <td className="border px-3 py-2">
+                    {user.phone_number || "-"}
+                  </td>
                   <td className="border px-3 py-2">
                     <select
                       value={user.user_type}
@@ -106,7 +120,9 @@ const PenggunaAdmin = () => {
                   </td>
                   <td className="border px-3 py-2">
                     <button
-                      onClick={() => handleToggleActive(user.id, user.is_active)}
+                      onClick={() =>
+                        handleToggleActive(user.id, user.is_active)
+                      }
                       className={`px-2 py-1 rounded text-white ${
                         user.is_active ? "bg-green-600" : "bg-gray-500"
                       }`}
@@ -116,7 +132,7 @@ const PenggunaAdmin = () => {
                   </td>
                   <td className="border px-3 py-2">
                     <button
-                      onClick={() => handleDelete(user.id)}
+                      onClick={() => confirmDelete(user.id)}
                       className="text-sm bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
                     >
                       Hapus
@@ -133,6 +149,34 @@ const PenggunaAdmin = () => {
               )}
             </tbody>
           </table>
+
+          {showConfirmModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  Konfirmasi Penghapusan
+                </h3>
+                <p className="mb-6 text-sm text-gray-600">
+                  Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini
+                  tidak dapat dibatalkan.
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => handleDelete(selectedUserId)}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <FooterAdmin />

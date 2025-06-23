@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getUser, clearTokens, clearUser, getAccessToken } from '../pages/services/tokenService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { logoutUser } from '../pages/services/auth';
+import { toast } from 'react-toastify';
 
 const Header = () => {
   const [userData, setUserData] = useState(getUser());
@@ -39,6 +40,7 @@ const Header = () => {
     clearUser();
     setUserData(null);
     navigate('/');
+    toast.success('Logout berhasil.');
   };
 
   const isActive = (path) => location.pathname === path;

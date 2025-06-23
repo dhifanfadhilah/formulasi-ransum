@@ -116,6 +116,7 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
                     'bahan_pakan_id': bahan.id,
                     'nama': bahan.nama,
                     'jumlah': round(sol, 4),  # pembulatan untuk presentasi
+                    'harga_per_kg': bahan.harga,
                     'harga': bahan.harga * Decimal(str(sol)) / Decimal('100')
                 }
                 for bahan, sol in zip(bahan_pakan_list, solusi)
