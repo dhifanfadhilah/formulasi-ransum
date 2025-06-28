@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getUser, clearTokens, clearUser, getAccessToken } from '../pages/services/tokenService';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { logoutUser } from '../pages/services/auth';
 import { toast } from 'react-toastify';
 
@@ -22,6 +22,9 @@ const Header = () => {
     } else {
       setUserData(user);
     }
+
+    setMenuOpen(false); // Menutup menu saat route berpindah
+    setProfileOpen(false); // Menutup dropdown profile saat pindah halaman
   }, [location]);
 
   useEffect(() => {
@@ -35,7 +38,11 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    await logoutUser();
+    try {
+      await logoutUser();
+    } catch (err) {
+      // Optional: log error
+    }
     clearTokens();
     clearUser();
     setUserData(null);
@@ -48,12 +55,14 @@ const Header = () => {
   return (
     <header className="bg-green-700 text-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <a href="/" className="text-xl font-bold tracking-wide">PakanUnggas</a>
+        <Link to="/" className="text-xl font-bold tracking-wide">PakanUnggas</Link>
 
         {/* Hamburger - Mobile */}
         <button
           className="md:hidden focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}
             viewBox="0 0 24 24">
@@ -67,24 +76,27 @@ const Header = () => {
                         md:flex md:items-center ${menuOpen ? 'block' : 'hidden'} md:block z-40`}>
           <ul className="flex flex-col md:flex-row gap-4 md:gap-6 px-4 py-2 md:p-0 text-sm font-medium">
             <li>
-              <a href="/" className={`hover:underline ${isActive('/') && 'underline'}`}>Beranda</a>
+              <Link to="/" className={`hover:underline ${isActive('/') ? 'underline' : ''}`}>Beranda</Link>
             </li>
             <li>
-              <a href="/formulasi" className={`hover:underline ${isActive('/formulasi') && 'underline'}`}>Formulasi</a>
+              <Link to="/formulasi" className={`hover:underline ${isActive('/formulasi') ? 'underline' : ''}`}>Formulasi</Link>
             </li>
             <li>
-              <a href="/informasi-nutrisi" className={`hover:underline ${isActive('/informasi-nutrisi') && 'underline'}`}>Informasi Nutrisi</a>
+              <Link to="/informasi-nutrisi" className={`hover:underline ${isActive('/informasi-nutrisi') ? 'underline' : ''}`}>Informasi Nutrisi</Link>
             </li>
 
             {!userData ? (
               <li>
-                <a href="/login" className="hover:underline">Login</a>
+                <Link to="/login" className="hover:underline">Login</Link>
               </li>
             ) : (
               <li ref={profileRef} className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-1 hover:underline focus:outline-none"
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
+                  aria-label="Toggle profile menu"
                 >
                   <span>{userData.name}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
@@ -96,13 +108,13 @@ const Header = () => {
 
                 {/* Dropdown */}
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded-xl shadow-md overflow-hidden z-50 animate-fade-in text-sm">
+                  <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded-xl shadow-md overflow-hidden z-50 animate-fade-in text-sm transition-all duration-150">
                     {userData.user_type === 'admin' && (
-                      <a href="/admin/dashboard" className="block px-4 py-2 hover:bg-gray-100">Admin</a>
+                      <Link to="/admin/dashboard" className="block px-4 py-2 hover:bg-gray-100">Admin</Link>
                     )}
-                    <a href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
-                    <a href="/profil" className="block px-4 py-2 hover:bg-gray-100">Edit Profil</a>
-                    <a href="/riwayat-formulasi" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</a>
+                    <Link to="/dashboard" className="block px-4 py-2 hover:bg-gray-100">Dashboard</Link>
+                    <Link to="/profil" className="block px-4 py-2 hover:bg-gray-100">Edit Profil</Link>
+                    <Link to="/riwayat-formulasi" className="block px-4 py-2 hover:bg-gray-100">Formulasi Saya</Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 hover:bg-gray-100"

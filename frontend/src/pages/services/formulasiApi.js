@@ -21,6 +21,6 @@ export const fetchFormulasiById = async (id) => {
 };
 
 export const deleteFormulasi = async (id) => {
-    const reponse = await API.delete(`/formulasi/${id}/`);
+    const reponse = await API.delete(`/hasil-formulasi/${id}/`);
     return reponse.data;
 };

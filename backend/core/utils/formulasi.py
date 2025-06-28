@@ -89,10 +89,10 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
         })
 
     # Cetak ke log terminal / gunicorn / console
-    print("=== DIAGNOSA NUTRIEN ===")
-    for d in diagnosis:
-        print(d)
-    print("=== END DIAGNOSA ===")
+    # print("=== DIAGNOSA NUTRIEN ===")
+    # for d in diagnosis:
+    #     print(d)
+    # print("=== END DIAGNOSA ===")
 
     # Hitung LP menggunakan solver 'highs' dari SciPy
     result = linprog(
@@ -107,6 +107,25 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
 
     # Jika solusi ditemukan
     if result.success:
+        # Hitung kandungan aktual nutrien dari solusi
+        nutrien_aktual = []
+        for nutrien in nutrien_objs:
+            total = 0.0
+            for i, bahan in enumerate(bahan_pakan_list):
+                kandungan = KandunganNutrien.objects.filter(
+                    bahan_pakan=bahan, nutrien=nutrien
+                ).first()
+                nilai = float(kandungan.nilai) / 100 if kandungan else 0.0
+                total += nilai * result.x[i]
+
+            kebutuhan = kebutuhan_qs.filter(nutrien=nutrien).first()
+            nutrien_aktual.append({
+                'nama': nutrien.nama,
+                'aktual': round(total, 4),
+                'dibutuhkan_min': kebutuhan.min_value,
+                'dibutuhkan_max': kebutuhan.max_value,
+            })
+
         solusi = result.x  # Nilai optimal setiap bahan
         # Format hasil ke bentuk dictionary
         return {
@@ -121,6 +140,7 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
                 }
                 for bahan, sol in zip(bahan_pakan_list, solusi)
             ],
+            'kandungan_nutrien': nutrien_aktual,
             'total_biaya': round(sum(bahan.harga * Decimal(str(sol)) / Decimal('100') for bahan, sol in zip(bahan_pakan_list, solusi)), 2)
         }
     else:

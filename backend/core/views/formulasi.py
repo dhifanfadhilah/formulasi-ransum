@@ -32,6 +32,7 @@ class FormulasiAPIView(APIView):
                         },
                         'komposisi': hasil['komposisi'],
                         'total_biaya': hasil['total_biaya'],
+                        'kandungan_nutrien': hasil['kandungan_nutrien'],
                         'created_at': now().isoformat()
                     }
                 }, status=status.HTTP_200_OK)
@@ -48,13 +49,14 @@ class SimpanFormulasiAPIView(APIView):
     def post(self, request):
         serializer = SimpanFormulasiSerializer(data=request.data)
         print("DEBUG PAYLOAD:", request.data)
+
         if serializer.is_valid():
-            print(serializer.validated_data)
+            print(serializer.validated_data) 
             nama_formulasi = serializer.validated_data['nama_formulasi']
             unggas = serializer.validated_data['jenis_unggas']
             fase = serializer.validated_data['fase']
             komposisi = serializer.validated_data['komposisi']
-            total_harga = serializer.validated_data['total_harga']
+            kandungan_nutrien = serializer.validated_data['kandungan_nutrien']
 
             # Simpan formulasi
             formulasi = Formulasi.objects.create(
@@ -63,7 +65,7 @@ class SimpanFormulasiAPIView(APIView):
                 unggas=unggas,
                 fase=fase,
                 formulasi=komposisi,
-                total_harga=total_harga,
+                kandungan_nutrien=kandungan_nutrien
             )
 
             # Simpan masing-masing bahan formulasi

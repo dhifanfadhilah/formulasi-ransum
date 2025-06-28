@@ -87,7 +87,7 @@ const Dashboard = () => {
               to="/riwayat-formulasi"
               className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg text-center"
             >
-              Lihat Formulasi Tersimpan
+              Formulasi Tersimpan
             </Link>
             <Link
               to="/profil"

@@ -361,4 +361,4 @@ class SimpanFormulasiSerializer(serializers.Serializer):
     jenis_unggas = serializers.PrimaryKeyRelatedField(queryset=JenisUnggas.objects.all())
     fase = serializers.PrimaryKeyRelatedField(queryset=FaseUnggas.objects.all())
     komposisi = KomposisiItemSerializer(many=True)
-    total_harga = serializers.DecimalField(max_digits=12, decimal_places=2)
+    kandungan_nutrien = serializers.ListField()

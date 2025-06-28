@@ -53,7 +53,7 @@ const LoginPage = () => {
       saveUser(userData);
 
       toast.success("Login dengan Google berhasil.");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("Google Login Failed", err);
       const errorMsg = err?.response?.data?.error || err?.response?.data?.non_field_errors?.[0] || "Login dengan Google gagal.";
@@ -96,7 +96,7 @@ const LoginPage = () => {
       });
 
       toast.success("Login berhasil.");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||
