@@ -5,6 +5,11 @@ export const fetchDashboardStats = async () => {
   return response.data;
 };
 
+export const fetchBahanPakanStats = async () => {
+  const response = await API.get(`admin/statistik/bahan-pakan/`);
+  return response.data;
+};
+
 export const fetchAllUsers = async () => {
   const response = await API.get(`users/`)
   return response.data;

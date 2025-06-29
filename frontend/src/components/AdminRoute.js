@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { getUser } from '../pages/services/tokenService';
+import { toast } from 'react-toastify';
 
 const AdminRoute = ({ children }) => {
   const user = getUser();
@@ -9,7 +10,8 @@ const AdminRoute = ({ children }) => {
   }
 
   if (user.user_type !== "admin") {
-    return <Navigate to="/dashboard" replace />;
+    toast.error("Akses ditolak.");
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

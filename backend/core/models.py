@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+import uuid
 
 # User Model
 class UserManager(BaseUserManager):
@@ -141,3 +142,20 @@ class BahanFormulasi(models.Model):
 
     def __str__(self):
         return f"{self.bahan_pakan.nama} - {self.jumlah} kg"
+    
+class LogFormulasiSession(models.Model):
+    session_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    jenis_unggas = models.ForeignKey(JenisUnggas, on_delete=models.CASCADE)
+    fase = models.ForeignKey(FaseUnggas, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Log {self.session_id} - {self.jenis_unggas.nama} ({self.fase.nama})"
+    
+class BahanLogFormulasi(models.Model):
+    log = models.ForeignKey(LogFormulasiSession, on_delete=models.CASCADE, related_name='bahan_log')
+    bahan_pakan = models.ForeignKey(BahanPakan, on_delete=models.CASCADE)
+    jumlah = models.DecimalField(max_digits=10, decimal_places=4)
+
+    def __str__(self):
+        return f"{self.bahan_pakan.nama} - {self.jumlah} %"

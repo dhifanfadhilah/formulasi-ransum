@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from core.serializers import FormulasiInputSerializer, SimpanFormulasiSerializer
-from core.models import BahanPakan, Formulasi, BahanFormulasi
+from core.models import Formulasi, BahanFormulasi, LogFormulasiSession, BahanLogFormulasi
 from core.utils.formulasi import formulasi_lp
 from django.utils.timezone import now
 
@@ -19,6 +19,18 @@ class FormulasiAPIView(APIView):
             hasil = formulasi_lp(jenis_unggas, fase, list(bahan_pakan_objs))
             
             if hasil['status'] == 'success':
+                log_session = LogFormulasiSession.objects.create(
+                    jenis_unggas=jenis_unggas,
+                    fase=fase
+                )
+
+                for item in hasil['komposisi']:
+                    BahanLogFormulasi.objects.create(
+                        log=log_session,
+                        bahan_pakan_id=item['bahan_pakan_id'],
+                        jumlah=item['jumlah']
+                    )
+
                 return Response({
                     'message': 'Formulasi berhasil dihitung',
                     'data': {

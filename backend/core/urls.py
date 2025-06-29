@@ -14,7 +14,10 @@ from core.views.viewsets import (
     UserViewSet, JenisUnggasViewSet, FaseUnggasViewSet,
     FaseJenisUnggasViewSet, NutrienViewSet, KebutuhanNutrienViewSet,
     BahanPakanViewSet, KandunganNutrienViewSet, BahanFormulasiViewSet,
-    FormulasiViewSet, dashboardStats
+    FormulasiViewSet
+)
+from core.views.views_admin import (
+    dashboardStats, statistik_bahan_pakan
 )
 
 router = DefaultRouter()
@@ -46,4 +49,5 @@ urlpatterns = router.urls + [
     path('auth/password-reset-request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('auth/password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('admin/dashboard/', dashboardStats, name='dashboard-stats'),
+    path('admin/statistik/bahan-pakan/', statistik_bahan_pakan, name='statistik-bahan-pakan'),
 ]
