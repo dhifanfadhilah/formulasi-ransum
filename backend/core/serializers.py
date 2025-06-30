@@ -267,6 +267,9 @@ class BahanPakanSerializer(serializers.ModelSerializer):
 # Kandungan Nutrien
 class KandunganNutrienSerializer(serializers.ModelSerializer):
     nutrien = NutrienSerializer(read_only=True)
+    nutrien_id = serializers.PrimaryKeyRelatedField(
+        queryset=Nutrien.objects.all(), source='nutrien', write_only=True
+    )
 
     class Meta:
         model = KandunganNutrien
@@ -280,18 +283,21 @@ class KandunganNutrienSerializer(serializers.ModelSerializer):
 # Kebutuhan Nutrien
 class KebutuhanNutrienSerializer(serializers.ModelSerializer):
     nutrien = NutrienSerializer(read_only=True)
+    nutrien_id = serializers.PrimaryKeyRelatedField(
+        queryset=Nutrien.objects.all(), write_only=True, source="nutrien"
+    )
 
     class Meta:
         model = KebutuhanNutrien
         fields = '__all__'
 
     def validate_min_value(self, value):
-        if value < 0:
+        if value is not None and value < 0:
             raise serializers.ValidationError("Nilai tidak boleh negatif")
         return value
     
     def validate_max_value(self, value):
-        if value < 0:
+        if value is not None and value < 0:
             raise serializers.ValidationError("Nilai tidak boleh negatif")
         return value
 

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { fetchFormulasiList, deleteFormulasi } from "./services/formulasiApi";
+import {
+  fetchFormulasiList,
+  deleteFormulasi,
+  updateFormulasiNama,
+} from "./services/formulasiApi";
 import { fetchJenisUnggas, fetchFaseByJenisUnggas } from "./services/userApi";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -17,6 +19,9 @@ const RiwayatFormulasi = () => {
   const [selectedFase, setSelectedFase] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedIdToDelete, setSelectedIdToDelete] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [newNamaFormulasi, setNewNamaFormulasi] = useState("");
+  const [selectedToRename, setSelectedToRename] = useState(null);
 
   const navigate = useNavigate();
 
@@ -69,33 +74,21 @@ const RiwayatFormulasi = () => {
     }
   };
 
-  const handleDownload = (formulasi) => {
-    const doc = new jsPDF();
-    doc.text(`Formulasi: ${formulasi.nama_formulasi}`, 10, 10);
-    doc.text(`Jenis Unggas: ${formulasi.unggas.nama}`, 10, 20);
-    doc.text(`Fase: ${formulasi.fase.nama}`, 10, 30);
-    doc.text(
-      `Total Biaya: Rp ${formulasi.total_harga.toLocaleString()}`,
-      10,
-      40
-    );
-    doc.text(
-      `Tanggal: ${new Date(formulasi.created_at).toLocaleDateString()}`,
-      10,
-      50
-    );
-
-    autoTable(doc, {
-      startY: 60,
-      head: [["Bahan Pakan", "Jumlah (kg)", "Harga/kg"]],
-      body: formulasi.bahan_formulasi.map((item) => [
-        item.bahan_pakan.nama,
-        item.jumlah,
-        item.bahan_pakan.harga,
-      ]),
-    });
-
-    doc.save(`${formulasi.nama_formulasi}.pdf`);
+  const handleRename = async () => {
+    if (!newNamaFormulasi.trim()) {
+      toast.error("Nama formulasi tidak boleh kosong.");
+      return;
+    }
+    try {
+      await updateFormulasiNama(selectedToRename.id, newNamaFormulasi.trim());
+      toast.success("Nama formulasi berhasil diperbarui.");
+      setShowRenameModal(false);
+      setSelectedToRename(null);
+      setNewNamaFormulasi("");
+      fetchFormulasi(); // refresh data
+    } catch (error) {
+      toast.error("Gagal memperbarui nama formulasi.");
+    }
   };
 
   // Apply search, filter & sort
@@ -210,11 +203,13 @@ const RiwayatFormulasi = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDownload(formulasi);
+                          setSelectedToRename(formulasi);
+                          setShowRenameModal(true);
+                          setNewNamaFormulasi(formulasi.nama_formulasi);
                         }}
                         className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded"
                       >
-                        Unduh
+                        Ubah Nama
                       </button>
                       <button
                         onClick={(e) => {
@@ -264,6 +259,36 @@ const RiwayatFormulasi = () => {
             <p className="text-gray-600 mt-4 text-center">
               Belum ada formulasi yang dibuat.
             </p>
+          )}
+
+          {showRenameModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded shadow-lg w-80">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Ubah Nama Formulasi
+                </h3>
+                <input
+                  type="text"
+                  value={newNamaFormulasi}
+                  onChange={(e) => setNewNamaFormulasi(e.target.value)}
+                  className="w-full border px-3 py-2 rounded mb-4"
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowRenameModal(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleRename}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </main>

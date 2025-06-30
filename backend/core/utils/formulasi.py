@@ -121,6 +121,7 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
             kebutuhan = kebutuhan_qs.filter(nutrien=nutrien).first()
             nutrien_aktual.append({
                 'nama': nutrien.nama,
+                'kode': nutrien.kode,
                 'aktual': round(total, 4),
                 'dibutuhkan_min': kebutuhan.min_value,
                 'dibutuhkan_max': kebutuhan.max_value,

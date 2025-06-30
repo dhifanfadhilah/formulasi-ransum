@@ -25,7 +25,10 @@ const KebutuhanNutrisiAdmin = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const toggleSidebar = () => setSidebarVisible(prev => !prev);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingItem, setDeletingItem] = useState(null);
+
+  const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   const loadData = useCallback(() => {
     fetchKebutuhanNutrien(selectedJenis, selectedFase).then(setData);
@@ -58,15 +61,20 @@ const KebutuhanNutrisiAdmin = () => {
     setModalOpen(false);
   };
 
+  const parseNumber = (value) => {
+    if (value === "" || value === null || isNaN(Number(value))) return null;
+    return Number(value);
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { id, nutrien, min_value, max_value } = editing;
     const payload = {
       jenis_unggas: selectedJenis,
       fase: selectedFase,
-      nutrien: nutrien.id,
-      min_value,
-      max_value,
+      nutrien_id: nutrien.id,
+      min_value: parseNumber(min_value),
+      max_value: parseNumber(max_value),
     };
 
     try {
@@ -84,14 +92,21 @@ const KebutuhanNutrisiAdmin = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus?")) return;
+  const handleDelete = (item) => {
+    setDeletingItem(item);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteKebutuhanNutrien(id);
+      await deleteKebutuhanNutrien(deletingItem.id);
       toast.success("Berhasil menghapus");
       loadData();
     } catch (err) {
       toast.error("Gagal menghapus");
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeletingItem(null);
     }
   };
 
@@ -103,12 +118,17 @@ const KebutuhanNutrisiAdmin = () => {
           onClick={() => setSidebarVisible(false)}
         />
       )}
-      <SideBarAdmin open={sidebarVisible} onClose={() => setSidebarVisible(false)}/>
+      <SideBarAdmin
+        open={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+      />
 
       <div className="flex flex-1 flex-col">
         <HeaderAdmin toggleSidebar={toggleSidebar} />
         <div className="container mx-auto mt-6 px-4 flex-grow">
-          <h2 className="text-xl font-bold mb-4">Manajemen Kebutuhan Nutrisi Unggas</h2>
+          <h2 className="text-xl font-bold mb-4">
+            Manajemen Kebutuhan Nutrisi Unggas
+          </h2>
 
           <div className="flex flex-wrap gap-4 items-center mb-4">
             <select
@@ -176,7 +196,7 @@ const KebutuhanNutrisiAdmin = () => {
                       </button>
                       <button
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(item)}
                       >
                         Hapus
                       </button>
@@ -232,7 +252,7 @@ const KebutuhanNutrisiAdmin = () => {
                     type="number"
                     step="0.01"
                     className="border w-full px-3 py-2 rounded"
-                    value={editing?.min_value ?? ""}
+                    value={editing?.min_value !== null ? editing.min_value : ""}
                     onChange={(e) =>
                       setEditing((prev) => ({
                         ...prev,
@@ -247,7 +267,7 @@ const KebutuhanNutrisiAdmin = () => {
                     type="number"
                     step="0.01"
                     className="border w-full px-3 py-2 rounded"
-                    value={editing?.max_value ?? ""}
+                    value={editing?.max_value !== null ? editing.max_value : ""}
                     onChange={(e) =>
                       setEditing((prev) => ({
                         ...prev,
@@ -275,6 +295,36 @@ const KebutuhanNutrisiAdmin = () => {
             </div>
           </div>
         )}
+
+        {deleteConfirmOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white rounded shadow-lg p-6 max-w-sm w-full">
+              <h2 className="text-lg font-semibold mb-4">Konfirmasi Hapus</h2>
+              <p className="mb-6">
+                Apakah Anda yakin ingin menghapus kebutuhan nutrien{" "}
+                <span className="font-semibold">
+                  {deletingItem?.nutrien?.nama}
+                </span>
+                ?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FooterAdmin />
       </div>
     </div>

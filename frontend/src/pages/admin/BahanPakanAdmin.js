@@ -26,12 +26,7 @@ const kategoriOptions = [
   { value: "mineral", label: "Mineral & Prefix" },
 ];
 
-const numericKeys = [
-    "harga",
-    "min_penggunaan",
-    "max_penggunaan",
-    "prioritas",
-  ];
+const numericKeys = ["harga", "min_penggunaan", "max_penggunaan", "prioritas"];
 
 const sortList = (list, config) => {
   if (!config.key) return list;
@@ -83,7 +78,9 @@ const BahanPakanAdmin = () => {
   const [nutrienList, setNutrienList] = useState([]);
   const [kandungan, setKandungan] = useState([]);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [bahanToDelete, setBahanToDelete] = useState(null);
+
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   const loadData = async () => {
@@ -145,13 +142,37 @@ const BahanPakanAdmin = () => {
     };
 
     try {
+      let bahanPakanId;
+
       if (selectedBahan) {
         await updateBahanPakan(selectedBahan.id, payload);
-        toast.success("Bahan pakan berhasil diperbarui");
+        bahanPakanId = selectedBahan.id;
+        // toast.success("Bahan pakan berhasil diperbarui");
+        console.log("bahan pakan berhasil diperbarui");
       } else {
-        await createBahanPakan(payload);
-        toast.success("Bahan pakan berhasil ditambahkan");
+        const created = await createBahanPakan(payload);
+        bahanPakanId = created.id;
+        // toast.success("Bahan pakan berhasil ditambahkan");
+        console.log("bahan pakan berhasil ditambahkan");
       }
+
+      for (let kand of kandungan) {
+        if (!kand.nilai || isNaN(parseFloat(kand.nilai))) continue;
+
+        const kandunganPayload = {
+          nilai: kand.nilai,
+          bahan_pakan: bahanPakanId,
+          nutrien_id: kand.nutrien.id,
+        };
+
+        if (kand.id) {
+          await updateKandungan(kand.id, kandunganPayload);
+        } else {
+          await createKandungan(kandunganPayload);
+        }
+      }
+
+      toast.success("Data berhasil disimpan");
       setModalOpen(false);
       await loadData();
     } catch (error) {
@@ -159,13 +180,18 @@ const BahanPakanAdmin = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const confirmDelete = (bahan) => {
+    setBahanToDelete(bahan);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
     try {
-      if (window.confirm("Yakin ingin menghapus bahan pakan ini?")) {
-        await deleteBahanPakan(id);
-        toast.success("Bahan pakan berhasil dihapus");
-        await loadData();
-      }
+      await deleteBahanPakan(bahanToDelete.id);
+      toast.success("Bahan pakan berhasil dihapus");
+      setDeleteConfirmOpen(false);
+      setBahanToDelete(null);
+      await loadData();
     } catch (error) {
       toast.error("Gagal menghapus bahan pakan");
     }
@@ -183,31 +209,6 @@ const BahanPakanAdmin = () => {
       });
     }
     setKandungan(updated);
-  };
-
-  const handleKandunganSave = async () => {
-    try {
-      for (let kand of kandungan) {
-        if (kand.id) {
-          await updateKandungan(kand.id, {
-            nilai: kand.nilai,
-            bahan_pakan: selectedBahan.id,
-            nutrien: kand.nutrien.id,
-          });
-        } else {
-          await createKandungan({
-            nilai: kand.nilai,
-            bahan_pakan: selectedBahan.id,
-            nutrien: kand.nutrien.id,
-          });
-        }
-      }
-      toast.success("Kandungan nutrien berhasil disimpan");
-      setModalOpen(false);
-      await loadData();
-    } catch (error) {
-      toast.error("Gagal menyimpan kandungan nutrien");
-    }
   };
 
   const handleSort = (key) => {
@@ -228,10 +229,13 @@ const BahanPakanAdmin = () => {
           onClick={() => setSidebarVisible(false)}
         />
       )}
-      <SideBarAdmin open={sidebarVisible} onClose={() => setSidebarVisible(false)}/>
+      <SideBarAdmin
+        open={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+      />
 
       <div className="">
-        <HeaderAdmin toggleSidebar={toggleSidebar}/>
+        <HeaderAdmin toggleSidebar={toggleSidebar} />
         <main className="max-w-6xl mx-auto p-4 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold">Manajemen Bahan Pakan</h1>
@@ -325,8 +329,12 @@ const BahanPakanAdmin = () => {
                     <td className="border p-2">{bahan.nama}</td>
                     <td className="border p-2 capitalize">{bahan.kategori}</td>
                     <td className="border p-2">{formatRupiah(bahan.harga)}</td>
-                    <td className="border p-2">{bahan.min_penggunaan || "-"}</td>
-                    <td className="border p-2">{bahan.max_penggunaan || "-"}</td>
+                    <td className="border p-2">
+                      {bahan.min_penggunaan || "-"}
+                    </td>
+                    <td className="border p-2">
+                      {bahan.max_penggunaan || "-"}
+                    </td>
                     <td className="border p-2">{bahan.prioritas || "-"}</td>
                     <td className="border p-2 space-x-2">
                       <button
@@ -336,7 +344,7 @@ const BahanPakanAdmin = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(bahan.id)}
+                        onClick={() => confirmDelete(bahan)}
                         className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                       >
                         Hapus
@@ -422,7 +430,10 @@ const BahanPakanAdmin = () => {
                     className="border px-3 py-2 rounded"
                     value={formData.min_penggunaan || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, min_penggunaan: e.target.value })
+                      setFormData({
+                        ...formData,
+                        min_penggunaan: e.target.value,
+                      })
                     }
                   />
                   <input
@@ -431,7 +442,10 @@ const BahanPakanAdmin = () => {
                     className="border px-3 py-2 rounded"
                     value={formData.max_penggunaan || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, max_penggunaan: e.target.value })
+                      setFormData({
+                        ...formData,
+                        max_penggunaan: e.target.value,
+                      })
                     }
                   />
                 </div>
@@ -466,21 +480,44 @@ const BahanPakanAdmin = () => {
                   onClick={handleSave}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
                 >
-                  Simpan Bahan
+                  Simpan
                 </button>
-                {selectedBahan && (
-                  <button
-                    onClick={handleKandunganSave}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                  >
-                    Simpan Nutrien
-                  </button>
-                )}
                 <button
                   onClick={() => setModalOpen(false)}
                   className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
                 >
                   Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {deleteConfirmOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div className="bg-white rounded shadow-lg p-6 w-full max-w-md">
+              <h2 className="text-lg font-semibold mb-4 text-center">
+                Konfirmasi Hapus
+              </h2>
+              <p className="text-center mb-6">
+                Apakah Anda yakin ingin menghapus{" "}
+                <strong>{bahanToDelete?.nama}</strong>?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    setDeleteConfirmOpen(false);
+                    setBahanToDelete(null);
+                  }}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                >
+                  Hapus
                 </button>
               </div>
             </div>

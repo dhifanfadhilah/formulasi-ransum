@@ -24,3 +24,6 @@ export const deleteFormulasi = async (id) => {
     const reponse = await API.delete(`/hasil-formulasi/${id}/`);
     return reponse.data;
 };
+
+export const updateFormulasiNama = (id, nama_formulasi) =>
+  API.patch(`/hasil-formulasi/${id}/`, { nama_formulasi });

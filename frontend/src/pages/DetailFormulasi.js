@@ -5,6 +5,8 @@ import { useEffect, useState, useCallback } from "react";
 import { fetchFormulasiById } from "./services/formulasiApi";
 import { toast } from "react-toastify";
 import { FileDown } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const DetailFormulasi = () => {
   const { id } = useParams();
@@ -50,22 +52,83 @@ const DetailFormulasi = () => {
     0
   );
 
-  const getSingkatan = (nama) => {
-    const map = {
-      "Kadar Air": "KA",
-      "Protein Kasar": "PK",
-      "Lemak Kasar": "LK",
-      "Serat Kasar": "SK",
-      Kalsium: "Ca",
-      "Energi Metabolisme": "EM",
-      Lysine: "lys",
-      Methionine: "met",
-      "Methionine + Cystine": "met+sis",
-      "Fosfor Total": "Ptotal",
-      "Fosfor Tersedia": "Pavl",
-      Abu: "Abu",
-    };
-    return map[nama] || nama.slice(0, 2).toUpperCase();
+  const downloadPDF = () => {
+    if (!formulasi) return;
+
+    const doc = new jsPDF();
+    const tanggalFormulasi = formatTanggal(formulasi.created_at);
+    const komposisi = hasilProduksi;
+    const kandungan = formulasi.kandungan_nutrien;
+
+    // Judul
+    doc.setFontSize(16);
+    doc.text("Detail Formulasi Ransum Pakan Unggas", 14, 20);
+
+    // Info Umum
+    doc.setFontSize(10);
+    doc.text(`Tanggal: ${tanggalFormulasi}`, 14, 28);
+    doc.text(`Jenis Unggas: ${formulasi.unggas.nama}`, 14, 34);
+    doc.text(`Fase: ${formulasi.fase.nama}`, 14, 40);
+
+    // Komposisi Bahan
+    doc.setFontSize(12);
+    doc.text("Komposisi Bahan Pakan:", 14, 48);
+    autoTable(doc, {
+      head: [["Bahan", "Persentase (%)", "Harga (Rp/kg)", "Subtotal (Rp)"]],
+      body: komposisi.map((item) => [
+        item.bahan_pakan.nama,
+        `${parseFloat(item.jumlah).toFixed(2)} %`,
+        `Rp ${item.bahan_pakan.harga.toLocaleString("id-ID")}`,
+        `Rp ${item.subtotal.toLocaleString("id-ID")}`,
+      ]),
+      startY: 54,
+      styles: { fontSize: 10 },
+    });
+
+    const afterKomposisiY = doc.lastAutoTable.finalY + 6;
+
+    // Total Harga
+    doc.setFontSize(11);
+    doc.text(
+      `Total Biaya: Rp ${totalHarga.toLocaleString("id-ID")} /kg`,
+      14,
+      afterKomposisiY
+    );
+
+    const afterHargaY = afterKomposisiY + 10;
+
+    // Nutrien
+    doc.setFontSize(12);
+    doc.text("Kebutuhan dan Kandungan Nutrien:", 14, afterHargaY);
+
+    autoTable(doc, {
+      startY: afterHargaY + 6,
+      head: [kandungan.map((item) => item.kode)],
+      body: [
+        kandungan.map((item) => {
+          const min = item.dibutuhkan_min;
+          const max = item.dibutuhkan_max;
+          if (min != null && max != null) return `${min} - ${max}`;
+          if (min != null) return `>= ${min}`;
+          if (max != null) return `<= ${max}`;
+          return "-";
+        }),
+        kandungan.map((item) => item.aktual.toFixed(2)),
+      ],
+      styles: { fontSize: 9 },
+    });
+
+    // Footer
+    const bottom = doc.internal.pageSize.height - 10;
+    doc.setFontSize(8);
+    doc.text(
+      "Dokumen ini dihasilkan otomatis dari sistem formulasi berbasis Linear Programming",
+      14,
+      bottom
+    );
+
+    const fileName = `Formulasi_${formulasi.unggas.nama}_${formulasi.fase.nama}.pdf`;
+    doc.save(fileName.replace(/\s+/g, "_"));
   };
 
   const formatTanggal = (tgl) =>
@@ -98,7 +161,9 @@ const DetailFormulasi = () => {
           {/* Info Umum */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-green-50 p-4 rounded-lg text-sm md:text-base">
             <p>
-              <span className="font-semibold text-green-700">Jenis Unggas:</span>{" "}
+              <span className="font-semibold text-green-700">
+                Jenis Unggas:
+              </span>{" "}
               {formulasi.unggas.nama}
             </p>
             <p>
@@ -127,7 +192,7 @@ const DetailFormulasi = () => {
                 <tr>
                   {formulasi.kandungan_nutrien.map((item, idx) => (
                     <th key={idx} className="px-3 py-2 border text-center">
-                      {getSingkatan(item.nama)}
+                      {item.kode}
                     </th>
                   ))}
                 </tr>
@@ -159,7 +224,7 @@ const DetailFormulasi = () => {
             </table>
             <p className="text-sm text-gray-500 mt-2 px-2">
               {formulasi.kandungan_nutrien
-                .map((item) => `${getSingkatan(item.nama)} = ${item.nama}`)
+                .map((item) => `${item.kode} = ${item.nama}`)
                 .join(" | ")}
             </p>
           </div>
@@ -212,7 +277,9 @@ const DetailFormulasi = () => {
                         {Number(item.bahan_pakan.harga).toLocaleString("id-ID")}
                       </td>
                       <td className="px-4 py-2">{item.jumlah} %</td>
-                      <td className="px-4 py-2">{item.jumlah_kg.toFixed(2)} kg</td>
+                      <td className="px-4 py-2">
+                        {item.jumlah_kg.toFixed(2)} kg
+                      </td>
                       <td className="px-4 py-2">
                         Rp {item.subtotal.toLocaleString("id-ID")}
                       </td>
@@ -225,12 +292,16 @@ const DetailFormulasi = () => {
           {/* Total Biaya */}
           <div className="bg-green-50 p-4 rounded-lg text-right text-lg font-semibold text-green-700">
             Total Harga: Rp{" "}
-            {totalHarga.toLocaleString("id-ID", { maximumFractionDigits: 0 })} /kg
+            {totalHarga.toLocaleString("id-ID", { maximumFractionDigits: 0 })}{" "}
+            /kg
           </div>
 
           {/* Aksi */}
           <div className="flex flex-col md:flex-row gap-3 justify-end mt-4">
-            <button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">
+            <button 
+              onClick={downloadPDF}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
+            >
               <FileDown size={18} />
               Unduh Hasil
             </button>

@@ -69,59 +69,95 @@ const HasilFormulasiPage = () => {
   const downloadPDF = () => {
     if (!hasilFormulasi || !hasilFormulasi.data) return;
 
-    const { komposisi, total_biaya } = hasilFormulasi.data;
-    const createdAt = hasilFormulasi.data?.created_at;
-    const tanggalFormulasi = new Date(createdAt).toLocaleDateString("id-ID", {
+    const { total_biaya, jenis_unggas, fase, created_at, kandungan_nutrien } =
+      hasilFormulasi.data;
+
+    const tanggalFormulasi = new Date(created_at).toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
 
     const doc = new jsPDF();
+
+    // Judul
     doc.setFontSize(16);
     doc.text("Hasil Formulasi Ransum Pakan Unggas", 14, 20);
 
+    // Info dasar
     doc.setFontSize(10);
-    doc.text(`Tanggal Formulasi: ${tanggalFormulasi}`, 14, 26);
+    doc.text(`Tanggal Formulasi: ${tanggalFormulasi}`, 14, 27);
+    doc.text(`Jenis Unggas: ${jenis_unggas?.nama}`, 14, 33);
+    doc.text(`Fase: ${fase?.nama}`, 14, 39);
 
+    // Komposisi bahan
     doc.setFontSize(12);
-    doc.text(
-      "Berikut ini adalah komposisi bahan pakan hasil formulasi yang Anda pilih.",
-      14,
-      30
-    );
-
-    const tableData = komposisi.map((item) => [
-      item.nama,
-      `${item.jumlah.toFixed(2)} %`,
-      `Rp ${item.harga_per_kg?.toLocaleString("id-ID") || 0}`,
-      `Rp ${item.harga?.toLocaleString("id-ID") || 0}`,
-    ]);
-
+    doc.text("Komposisi Bahan Pakan:", 14, 47);
     autoTable(doc, {
-      head: [
-        ["Bahan Pakan", "Persentase (%)", "Harga (Rp/kg)", "Subtotal (Rp)"],
-      ],
-      body: tableData,
-      startY: 40,
+      head: [["Bahan", "Persentase (%)", "Harga (Rp/kg)", "Subtotal (Rp)"]],
+      body: hasilHitung.map((item) => [
+        item.nama,
+        `${item.jumlah.toFixed(2)} %`,
+        `Rp ${item.harga_per_kg?.toLocaleString("id-ID") || 0}`,
+        `Rp ${item.subtotal?.toLocaleString("id-ID") || 0}`,
+      ]),
+      startY: 52,
+      styles: { fontSize: 10 },
     });
 
+    const afterKomposisiY = doc.lastAutoTable.finalY + 6;
+
+    // Total Biaya
+    doc.setFontSize(11);
     doc.text(
       `Total Biaya: Rp ${total_biaya.toLocaleString("id-ID")} /kg`,
       14,
-      doc.lastAutoTable.finalY + 10
+      afterKomposisiY
     );
+
+    const afterHargaY = afterKomposisiY + 10;
+
+    // Nutrien
+    if (kebutuhanNutrien.length > 0) {
+      doc.setFontSize(12);
+      doc.text("Kebutuhan dan Kandungan Nutrien:", 14, afterHargaY);
+
+      autoTable(doc, {
+        startY: afterHargaY + 6,
+        head: [kebutuhanNutrien.map((item) => item.nutrien.kode)],
+        body: [
+          // Baris kebutuhan
+          kebutuhanNutrien.map((item) => {
+            const min = item.min_value;
+            const max = item.max_value;
+            if (min != null && max != null) return `${min} - ${max}`;
+            if (min != null) return `>= ${min}`;
+            if (max != null) return `<= ${max}`;
+            return "-";
+          }),
+          // Baris aktual
+          kebutuhanNutrien.map((item) => {
+            const nutrienAktual = kandungan_nutrien.find(
+              (n) => n.nama === item.nutrien.nama
+            );
+            return nutrienAktual ? nutrienAktual.aktual.toFixed(2) : "-";
+          }),
+        ],
+        styles: { fontSize: 9 },
+      });
+    }
+
+    // Footer
+    const bottom = doc.internal.pageSize.height - 10;
+    doc.setFontSize(8);
     doc.text(
-      `Jenis Unggas: ${hasilFormulasi.data?.jenis_unggas?.nama}`,
+      "Dokumen ini dihasilkan otomatis dari sistem formulasi berbasis Linear Programming",
       14,
-      doc.lastAutoTable.finalY + 20
+      bottom
     );
-    doc.text(
-      `Fase: ${hasilFormulasi.data?.fase?.nama}`,
-      14,
-      doc.lastAutoTable.finalY + 28
-    );
-    doc.save("hasil_formulasi.pdf");
+
+    const fileName = `Formulasi_${jenis_unggas?.nama}_${fase?.nama}.pdf`;
+    doc.save(fileName.replace(/\s+/g, "_"));
   };
 
   if (!hasilFormulasi) {
@@ -174,24 +210,6 @@ const HasilFormulasiPage = () => {
     }
   };
 
-  const getSingkatan = (nama) => {
-    const map = {
-      "Kadar Air": "KA",
-      "Protein Kasar": "PK",
-      "Lemak Kasar": "LK",
-      "Serat Kasar": "SK",
-      Kalsium: "Ca",
-      "Energi Metabolisme": "EM",
-      Lysine: "lys",
-      Methionine: "met",
-      "Methionine + Cystine": "met+sis",
-      "Fosfor Total": "Ptotal",
-      "Fosfor Tersedia": "Pavl",
-      Abu: "Abu",
-    };
-    return map[nama] || nama.slice(0, 2).toUpperCase();
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Header />
@@ -232,7 +250,7 @@ const HasilFormulasiPage = () => {
                 <tr>
                   {kebutuhanNutrien.map((item, idx) => (
                     <th key={idx} className="px-3 py-2 border text-center">
-                      {getSingkatan(item.nutrien.nama)}
+                      {item.nutrien.kode}
                     </th>
                   ))}
                 </tr>
@@ -261,9 +279,7 @@ const HasilFormulasiPage = () => {
                       );
                     return (
                       <td key={idx} className="text-center px-3 py-2 border">
-                        {nutrienAktual
-                          ? nutrienAktual.aktual.toFixed(2)
-                          : "-"}
+                        {nutrienAktual ? nutrienAktual.aktual.toFixed(2) : "-"}
                       </td>
                     );
                   })}
@@ -272,10 +288,7 @@ const HasilFormulasiPage = () => {
             </table>
             <p className="text-xs text-gray-500 mt-2">
               {kebutuhanNutrien
-                .map(
-                  (item) =>
-                    `${getSingkatan(item.nutrien.nama)} = ${item.nutrien.nama}`
-                )
+                .map((item) => `${item.nutrien.kode} = ${item.nutrien.nama}`)
                 .join(" | ")}
             </p>
           </div>

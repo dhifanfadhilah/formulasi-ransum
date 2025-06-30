@@ -52,7 +52,7 @@ const LoginPage = () => {
       saveTokens(data.access || data.access_token, data.refresh || data.refresh_token, true);
       saveUser(userData);
 
-      toast.success("Login dengan Google berhasil.");
+      toast.success("Login berhasil.");
       navigate("/dashboard");
     } catch (err) {
       console.error("Google Login Failed", err);
