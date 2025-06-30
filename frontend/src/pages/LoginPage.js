@@ -61,7 +61,7 @@ const LoginPage = () => {
       if (userData.user_type === "admin") {
         navigate("/admin/dashboard");
       } else {
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (err) {
       console.error("Google Login Failed", err);
@@ -109,7 +109,7 @@ const LoginPage = () => {
       if (data.user_type === "admin") {
         navigate("/admin/dashboard");
       } else {
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (err) {
       const msg =
