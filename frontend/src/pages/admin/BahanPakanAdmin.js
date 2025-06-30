@@ -80,8 +80,13 @@ const BahanPakanAdmin = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [bahanToDelete, setBahanToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
+
+  useEffect(() => {
+    document.title = "PakanUnggas - Manajemen Bahan Pakan"; 
+  }, []);
 
   const loadData = async () => {
     const data = await fetchBahanPakan();
@@ -129,6 +134,9 @@ const BahanPakanAdmin = () => {
   };
 
   const handleSave = async () => {
+    if (loading) return;
+    setLoading(true);
+
     const payload = {
       ...formData,
       harga: parseFloat(formData.harga),
@@ -177,6 +185,8 @@ const BahanPakanAdmin = () => {
       await loadData();
     } catch (error) {
       toast.error("Gagal menyimpan bahan pakan");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -479,8 +489,9 @@ const BahanPakanAdmin = () => {
                 <button
                   onClick={handleSave}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                  disabled={loading}
                 >
-                  Simpan
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
                 <button
                   onClick={() => setModalOpen(false)}

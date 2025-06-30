@@ -15,6 +15,10 @@ const DetailFormulasi = () => {
   const [hasilProduksi, setHasilProduksi] = useState([]);
 
   useEffect(() => {
+    document.title = "PakanUnggas - Detail Formulasi"; 
+  }, []);
+
+  useEffect(() => {
     const getData = async () => {
       try {
         const data = await fetchFormulasiById(id);

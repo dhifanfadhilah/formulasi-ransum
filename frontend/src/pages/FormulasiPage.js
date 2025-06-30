@@ -24,6 +24,10 @@ const FormulasiPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "PakanUnggas - Formulasi"; 
+  }, []);
+
   const handleCheckboxChange = (e) => {
     const id = parseInt(e.target.value);
     setSelectedBahanPakan((prev) =>
@@ -45,19 +49,19 @@ const FormulasiPage = () => {
 
   const handleFormulasi = async () => {
     if (!selectedJenis || !selectedFase || selectedBahanPakan.length === 0) {
-      alert("Mohon Lengkapi semua pilihan sebelum melakukan formulasi.");
+      toast.error("Mohon Lengkapi semua pilihan sebelum melakukan formulasi.");
       return;
     }
 
     if (!validateKategoriTerpenuhi()) {
-      alert(
+      toast.error(
         "Pilihan bahan pakan harus memenuhi kategori energi, protein, dan mineral."
       );
       return;
     }
 
     if (selectedBahanPakan.length < 3) {
-      alert("Pilihan bahan pakan tidak boleh kurang dari 3.");
+      toast.error("Pilihan bahan pakan tidak boleh kurang dari 3.");
       return;
     }
 
@@ -74,7 +78,7 @@ const FormulasiPage = () => {
       navigate("/hasil-formulasi", { state: { hasilFormulasi: result } });
     } catch (error) {
       console.error("Gagal melakukan formulasi:", error);
-      toast.error("Gagal melakukan formulasi.");
+      toast.error("Tidak dapat menemukan solusi formulasi.");
     } finally {
       setLoading(false);
     }

@@ -20,6 +20,10 @@ const DashboardAdmin = () => {
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   useEffect(() => {
+    document.title = "PakanUnggas - Dashboard Admin"; 
+  }, []);
+
+  useEffect(() => {
     const getStats = async () => {
       try {
         const data = await fetchDashboardStats();
@@ -64,6 +68,9 @@ const DashboardAdmin = () => {
             />
             <StatCard title="Total Formulasi" value={stats.total_formulasi} />
           </div>
+          <h2 className="text-xl font-semibold text-blue-800 mb-4">
+            Grafik Penggunaan Bahan Pakan
+          </h2>
           <GrafikBahanPakan />
         </main>
         <FooterAdmin />

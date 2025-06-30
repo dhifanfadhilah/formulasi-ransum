@@ -25,6 +25,10 @@ const HasilFormulasiPage = () => {
   const [hasilHitung, setHasilHitung] = useState([]);
 
   useEffect(() => {
+    document.title = "PakanUnggas - Hasil Formulasi"; 
+  }, []);
+
+  useEffect(() => {
     const getNutrien = async () => {
       if (hasilFormulasi?.data) {
         const res = await fetchKebutuhanNutrien(

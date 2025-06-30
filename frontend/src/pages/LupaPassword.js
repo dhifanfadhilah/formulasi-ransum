@@ -1,12 +1,16 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { toast } from "react-toastify";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { requestPasswordReset } from "./services/auth";
 
 const LupaPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "PakanUnggas - Reset Password"; 
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

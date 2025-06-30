@@ -12,6 +12,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "PakanUnggas - Dashboard Pengguna"; 
+  }, []);
+
+  useEffect(() => {
     const userData = getUser();
     setUser(userData);
 

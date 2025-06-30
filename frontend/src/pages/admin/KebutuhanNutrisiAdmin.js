@@ -27,8 +27,13 @@ const KebutuhanNutrisiAdmin = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
+
+  useEffect(() => {
+    document.title = "PakanUnggas - Manajemen Kebutuhan Nutrisi"; 
+  }, []);
 
   const loadData = useCallback(() => {
     fetchKebutuhanNutrien(selectedJenis, selectedFase).then(setData);
@@ -68,6 +73,9 @@ const KebutuhanNutrisiAdmin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
+    setLoading(true);
     const { id, nutrien, min_value, max_value } = editing;
     const payload = {
       jenis_unggas: selectedJenis,
@@ -89,6 +97,8 @@ const KebutuhanNutrisiAdmin = () => {
       loadData();
     } catch (err) {
       toast.error("Terjadi kesalahan.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -287,8 +297,9 @@ const KebutuhanNutrisiAdmin = () => {
                   <button
                     type="submit"
                     className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    disabled={loading}
                   >
-                    Simpan
+                    {loading ? "Menyimpan..." : "Simpan"}
                   </button>
                 </div>
               </form>

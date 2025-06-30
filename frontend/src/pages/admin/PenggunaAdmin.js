@@ -17,6 +17,10 @@ const PenggunaAdmin = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const toggleSidebar = () => setSidebarVisible(prev => !prev);
 
+  useEffect(() => {
+    document.title = "PakanUnggas - Manajemen Pengguna"; 
+  }, []);
+
   const fetchUsers = async () => {
     try {
       const data = await fetchAllUsers();

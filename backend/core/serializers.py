@@ -12,6 +12,7 @@ from django.core.mail import EmailMessage
 from django.db import transaction
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework.validators import UniqueValidator
 from .models import (
     JenisUnggas, FaseUnggas, FaseJenisUnggas,
     BahanPakan, Nutrien, KandunganNutrien,
@@ -37,28 +38,33 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'email']
 
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="Email sudah terdaftar"
+            )
+        ]
+    )
     password = serializers.CharField(write_only=True, required=True)
+    phone_number = serializers.CharField(required=True)
+    name = serializers.CharField(required=True)
 
     class Meta:
         model = User
         fields = ['email', 'name', 'phone_number', 'password']
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email sudah terdaftar")
-        return value
-    
     def validate_password(self, value):
         validate_password(value)
         return value
 
     @transaction.atomic
     def create(self, validated_data):
-        
         user = User(
             email=validated_data['email'],
             name=validated_data['name'],
-            phone_number=validated_data.get('phone_number', ''),
+            phone_number=validated_data['phone_number'],
             user_type='user',
             is_active=False,
         )

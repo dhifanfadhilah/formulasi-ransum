@@ -19,6 +19,10 @@ const LoginPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "PakanUnggas - Login"; 
+  }, []);
+
   // Check if google client ID is available
   useEffect(() => {
     if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
@@ -53,7 +57,12 @@ const LoginPage = () => {
       saveUser(userData);
 
       toast.success("Login berhasil.");
-      navigate("/dashboard");
+      
+      if (userData.user_type === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       console.error("Google Login Failed", err);
       const errorMsg = err?.response?.data?.error || err?.response?.data?.non_field_errors?.[0] || "Login dengan Google gagal.";
@@ -96,7 +105,12 @@ const LoginPage = () => {
       });
 
       toast.success("Login berhasil.");
-      navigate("/dashboard");
+
+      if (data.user_type === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||

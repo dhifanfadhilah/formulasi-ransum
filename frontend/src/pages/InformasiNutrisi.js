@@ -16,6 +16,10 @@ const InformasiNutrisi = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    document.title = "PakanUnggas - Informasi Nutrisi"; 
+  }, []);
+
+  useEffect(() => {
     const loadJenisUnggas = async () => {
       const jenis = await fetchJenisUnggas();
       setJenisList(jenis);

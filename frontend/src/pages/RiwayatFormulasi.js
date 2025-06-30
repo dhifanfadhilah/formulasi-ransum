@@ -26,6 +26,10 @@ const RiwayatFormulasi = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "PakanUnggas - Formulasi Tersimpan"; 
+  }, []);
+
+  useEffect(() => {
     fetchFormulasi();
     fetchJenisUnggas().then(setJenisUnggasOptions);
   }, []);

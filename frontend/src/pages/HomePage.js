@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import {
@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 
 const HomePage = () => {
+  useEffect(() => {
+    document.title = "PakanUnggas - Halaman Utama"; 
+  }, []);
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <Header />

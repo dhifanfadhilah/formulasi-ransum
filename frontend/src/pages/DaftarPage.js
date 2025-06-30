@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
@@ -18,6 +18,10 @@ const DaftarPage = () => {
   const [passwordStrength, setPasswordStrength] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "PakanUnggas - Register"; 
+  }, []);
 
   const validatePhoneNumber = (phone) => {
     const regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
@@ -78,7 +82,9 @@ const DaftarPage = () => {
         phone_number: trimmed.phone_number,
         password: trimmed.password
       });
+
       toast.success("Registrasi berhasil! Silakan cek email Anda.");
+
       setFormData({
         name: '',
         email: '',
@@ -86,14 +92,21 @@ const DaftarPage = () => {
         password: '',
         confirmPassword: ''
       });
+
       setPasswordStrength('');
       setErrors({});
     } catch (err) {
-      if (err.response?.data) {
-        const backendErrors = err.response.data;
-        Object.keys(backendErrors).forEach(key => {
-          toast.error(`${key}: ${backendErrors[key].join(', ')}`);
-        });
+      console.error("Struktur error lengkap:", err);
+      if (typeof err === 'object' && err !== null && Object.keys(err).length > 0) {
+        const errorKey = Object.keys(err)[0];
+        const errorMessages = err[errorKey];
+
+        if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+          toast.error(errorMessages[0]); // <-- Ini akan menampilkan "Email sudah terdaftar"
+        } else {
+          // Fallback untuk format yang tidak terduga
+          toast.error("Terjadi kesalahan validasi.");
+        }
       } else {
         toast.error("Registrasi gagal.");
       }
