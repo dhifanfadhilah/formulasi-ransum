@@ -59,6 +59,10 @@ def formulasi_lp(jenis_unggas, fase, bahan_pakan_list):
     for bahan in bahan_pakan_list:
         min_pakai = float(bahan.min_penggunaan if bahan.min_penggunaan is not None else 0)
         max_pakai = float(bahan.max_penggunaan if bahan.max_penggunaan is not None else 100)
+
+        if fase.nama.lower() == "layer" and bahan.kategori == "mineral":
+            max_pakai = float(4)
+
         bounds.append((min_pakai, max_pakai))
 
     # Kendala total bahan = 100%

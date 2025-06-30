@@ -32,7 +32,7 @@ const KebutuhanNutrisiAdmin = () => {
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   useEffect(() => {
-    document.title = "PakanUnggas - Manajemen Kebutuhan Nutrisi"; 
+    document.title = "PakanUnggas - Manajemen Kebutuhan Nutrisi";
   }, []);
 
   const loadData = useCallback(() => {
@@ -45,8 +45,24 @@ const KebutuhanNutrisiAdmin = () => {
   }, []);
 
   useEffect(() => {
+    fetchJenisUnggas().then((jenis) => {
+      setJenisList(jenis);
+      if (jenis.length > 0) {
+        setSelectedJenis(jenis[0].id); // pilih jenis pertama
+      }
+    });
+
+    fetchNutrien().then(setNutrienList);
+  }, []);
+
+  useEffect(() => {
     if (selectedJenis) {
-      fetchFaseByJenisUnggas(selectedJenis).then(setFaseList);
+      fetchFaseByJenisUnggas(selectedJenis).then((fase) => {
+        setFaseList(fase);
+        if (fase.length > 0) {
+          setSelectedFase(fase[0].fase); // pilih fase pertama
+        }
+      });
     }
   }, [selectedJenis]);
 
@@ -69,7 +85,7 @@ const KebutuhanNutrisiAdmin = () => {
   const parseNumber = (value) => {
     if (value === "" || value === null || isNaN(Number(value))) return null;
     return Number(value);
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -136,9 +152,7 @@ const KebutuhanNutrisiAdmin = () => {
       <div className="flex flex-1 flex-col">
         <HeaderAdmin toggleSidebar={toggleSidebar} />
         <div className="container mx-auto mt-6 px-4 flex-grow">
-          <h2 className="text-xl font-bold mb-4">
-            Manajemen Kebutuhan Nutrisi Unggas
-          </h2>
+          <h2 className="text-xl font-bold mb-4">Kebutuhan Nutrisi Unggas</h2>
 
           <div className="flex flex-wrap gap-4 items-center mb-4">
             <select
@@ -192,7 +206,7 @@ const KebutuhanNutrisiAdmin = () => {
               </thead>
               <tbody>
                 {data.map((item) => (
-                  <tr key={item.id} className="text-center hover:bg-gray-100">
+                  <tr key={item.id + selectedFase} className="text-center hover:bg-gray-100 transition-opacity duration=300">
                     <td className="border p-2">{item.nutrien.nama}</td>
                     <td className="border p-2">{item.min_value ?? "-"}</td>
                     <td className="border p-2">{item.max_value ?? "-"}</td>

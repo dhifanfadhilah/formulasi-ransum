@@ -137,6 +137,24 @@ const BahanPakanAdmin = () => {
     if (loading) return;
     setLoading(true);
 
+    const fieldsToCheck = ["prioritas", "min_penggunaan", "max_penggunaan"];
+    for (let key of fieldsToCheck) {
+      const val = parseFloat(formData[key]);
+      if (!isNaN(val) && val < 0) {
+        toast.error(`${key.replace("_", " ")} tidak boleh negatif`);
+        setLoading(false);
+        return;
+      }
+    }
+
+    const min = parseFloat(formData.min_penggunaan);
+    const max = parseFloat(formData.max_penggunaan);
+    if (!isNaN(min) && !isNaN(max) && min > max) {
+      toast.error("Min penggunaan tidak boleh lebih besar dari Max penggunaan");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...formData,
       harga: parseFloat(formData.harga),
@@ -155,17 +173,19 @@ const BahanPakanAdmin = () => {
       if (selectedBahan) {
         await updateBahanPakan(selectedBahan.id, payload);
         bahanPakanId = selectedBahan.id;
-        // toast.success("Bahan pakan berhasil diperbarui");
-        console.log("bahan pakan berhasil diperbarui");
       } else {
         const created = await createBahanPakan(payload);
         bahanPakanId = created.id;
-        // toast.success("Bahan pakan berhasil ditambahkan");
-        console.log("bahan pakan berhasil ditambahkan");
       }
 
       for (let kand of kandungan) {
-        if (!kand.nilai || isNaN(parseFloat(kand.nilai))) continue;
+        const nilaiFloat = parseFloat(kand.nilai);
+        if (isNaN(nilaiFloat)) continue;
+        if (nilaiFloat < 0) {
+          toast.error(`Nilai kandungan untuk ${kand.nutrien.nama} tidak boleh negatif`);
+          setLoading(false);
+          return;
+        }
 
         const kandunganPayload = {
           nilai: kand.nilai,
@@ -248,7 +268,7 @@ const BahanPakanAdmin = () => {
         <HeaderAdmin toggleSidebar={toggleSidebar} />
         <main className="max-w-6xl mx-auto p-4 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold">Manajemen Bahan Pakan</h1>
+            <h1 className="text-2xl font-bold">Data Bahan Pakan</h1>
             <button
               onClick={() => openModal()}
               className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
