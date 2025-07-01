@@ -15,10 +15,13 @@ const PenggunaAdmin = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const toggleSidebar = () => setSidebarVisible(prev => !prev);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 15;
+
+  const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   useEffect(() => {
-    document.title = "PakanUnggas - Manajemen Pengguna"; 
+    document.title = "PakanUnggas - Manajemen Pengguna";
   }, []);
 
   const fetchUsers = async () => {
@@ -70,11 +73,22 @@ const PenggunaAdmin = () => {
     }
   };
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users
+    .filter(
+      (u) =>
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.user_type === "admin" && b.user_type !== "admin") return -1;
+      if (a.user_type !== "admin" && b.user_type === "admin") return 1;
+      return 0;
+    });
+
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   return (
     <div className="flex min-h-screen relative">
@@ -84,10 +98,13 @@ const PenggunaAdmin = () => {
           onClick={() => setSidebarVisible(false)}
         />
       )}
-      <SideBarAdmin open={sidebarVisible} onClose={() => setSidebarVisible(false)}/>
+      <SideBarAdmin
+        open={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+      />
 
       <div className="flex flex-col flex-1">
-        <HeaderAdmin toggleSidebar={toggleSidebar}/>
+        <HeaderAdmin toggleSidebar={toggleSidebar} />
         <main className="p-4 md:p-8 max-w-6xl mx-auto flex-grow">
           <div className="mb-6 flex justify-between items-center">
             <h2 className="text-2xl font-bold">Manajemen Pengguna</h2>
@@ -114,9 +131,11 @@ const PenggunaAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user, index) => (
+                {currentUsers.map((user, index) => (
                   <tr key={user.id} className="text-center hover:bg-gray-100">
-                    <td className="border px-3 py-2">{index + 1}</td>
+                    <td className="border px-3 py-2">
+                      {indexOfFirstUser + index + 1}
+                    </td>
                     <td className="border px-3 py-2">{user.name}</td>
                     <td className="border px-3 py-2">{user.email}</td>
                     <td className="border px-3 py-2">
@@ -165,6 +184,42 @@ const PenggunaAdmin = () => {
                 )}
               </tbody>
             </table>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 my-4">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className="px-3 py-1 border rounded hover:bg-gray-100"
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 border rounded ${
+                      currentPage === i + 1
+                        ? "bg-blue-900 text-white"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className="px-3 py-1 border rounded hover:bg-gray-100"
+                  disabled={currentPage === totalPages}
+                >
+                  Next 
+                </button>
+              </div>
+            )}
 
             {showConfirmModal && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

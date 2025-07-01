@@ -81,12 +81,18 @@ const BahanPakanAdmin = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [bahanToDelete, setBahanToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   const toggleSidebar = () => setSidebarVisible((prev) => !prev);
 
   useEffect(() => {
-    document.title = "PakanUnggas - Manajemen Bahan Pakan"; 
+    document.title = "PakanUnggas - Manajemen Bahan Pakan";
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [bahanList, kategoriFilter, searchQuery, sortConfig]);
 
   const loadData = async () => {
     const data = await fetchBahanPakan();
@@ -137,6 +143,18 @@ const BahanPakanAdmin = () => {
     if (loading) return;
     setLoading(true);
 
+    if (!formData.nama.trim()) {
+      toast.error("Nama bahan pakan harus diisi");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.harga || isNaN(parseFloat(formData.harga))) {
+      toast.error("Harga bahan pakan harus diisi");
+      setLoading(false);
+      return;
+    }
+
     const fieldsToCheck = ["prioritas", "min_penggunaan", "max_penggunaan"];
     for (let key of fieldsToCheck) {
       const val = parseFloat(formData[key]);
@@ -182,7 +200,9 @@ const BahanPakanAdmin = () => {
         const nilaiFloat = parseFloat(kand.nilai);
         if (isNaN(nilaiFloat)) continue;
         if (nilaiFloat < 0) {
-          toast.error(`Nilai kandungan untuk ${kand.nutrien.nama} tidak boleh negatif`);
+          toast.error(
+            `Nilai kandungan untuk ${kand.nutrien.nama} tidak boleh negatif`
+          );
           setLoading(false);
           return;
         }
@@ -250,6 +270,11 @@ const BahanPakanAdmin = () => {
       }
     });
   };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredList.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredList.length / itemsPerPage);
 
   return (
     <div className="min-h-screenrelative">
@@ -354,7 +379,7 @@ const BahanPakanAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredList.map((bahan) => (
+                {currentItems.map((bahan) => (
                   <tr key={bahan.id} className="text-center hover:bg-gray-100">
                     <td className="border p-2">{bahan.nama}</td>
                     <td className="border p-2 capitalize">{bahan.kategori}</td>
@@ -382,7 +407,7 @@ const BahanPakanAdmin = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredList.length === 0 && (
+                {currentItems.length === 0 && (
                   <tr>
                     <td colSpan="7" className="text-center py-4 text-gray-500">
                       Tidak ada data ditemukan
@@ -391,6 +416,39 @@ const BahanPakanAdmin = () => {
                 )}
               </tbody>
             </table>
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+
+              {[...Array(totalPages)].map((_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === idx + 1
+                      ? "bg-blue-700 text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </main>
         <FooterAdmin />
@@ -415,7 +473,9 @@ const BahanPakanAdmin = () => {
                   <input
                     type="text"
                     placeholder="Nama"
-                    className="border px-3 py-2 rounded"
+                    className={`border px-3 py-2 rounded ${
+                      !formData.nama && loading ? "border-red-500" : ""
+                    }`}
                     value={formData.nama}
                     onChange={(e) =>
                       setFormData({ ...formData, nama: e.target.value })
@@ -424,7 +484,11 @@ const BahanPakanAdmin = () => {
                   <input
                     type="number"
                     placeholder="Harga (Rp)"
-                    className="border px-3 py-2 rounded"
+                    className={`border px-3 py-2 rounded ${
+                      (!formData.harga || isNaN(formData.harga)) && loading
+                        ? "border-red-500"
+                        : ""
+                    }`}
                     value={formData.harga}
                     onChange={(e) =>
                       setFormData({ ...formData, harga: e.target.value })
