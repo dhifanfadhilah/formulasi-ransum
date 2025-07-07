@@ -25,7 +25,7 @@ const FormulasiPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "PakanUnggas - Formulasi"; 
+    document.title = "PakanUnggas - Formulasi";
   }, []);
 
   const handleCheckboxChange = (e) => {
@@ -54,9 +54,7 @@ const FormulasiPage = () => {
     }
 
     if (!validateKategoriTerpenuhi()) {
-      toast.error(
-        "Pilihan bahan pakan harus memenuhi kategori energi, protein, dan mineral."
-      );
+      toast.error("Pilihan bahan pakan harus memenuhi kategori energi, protein, dan mineral.");
       return;
     }
 
@@ -74,7 +72,6 @@ const FormulasiPage = () => {
 
     try {
       const result = await postFormulasi(payload);
-      console.log("Hasil Formulasi:", result);
       navigate("/hasil-formulasi", { state: { hasilFormulasi: result } });
     } catch (error) {
       console.error("Gagal melakukan formulasi:", error);
@@ -194,33 +191,33 @@ const FormulasiPage = () => {
             </div>
           </div>
 
-          {[
-            { title: "Sumber Energi", data: sumberEnergi },
-            { title: "Sumber Protein", data: sumberProtein },
-            { title: "Mineral dan Premix", data: mineralPrefix },
-          ].map((kategori, idx) => (
-            <div key={idx} className="mb-8">
-              <h3 className="text-xl font-semibold text-green-700 mb-4">
-                {kategori.title}
-              </h3>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {kategori.data.map((item) => (
-                  <label
-                    key={item.id}
-                    className="flex items-center text-sm gap-2 bg-white p-2 rounded hover:bg-green-50 transition border border-gray-200"
-                  >
-                    <input
-                      type="checkbox"
-                      value={item.id}
-                      onChange={handleCheckboxChange}
-                      className="accent-green-600 w-4 h-4"
-                    />
-                    <span className="truncate">{item.nama}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+          {[{ title: "Sumber Energi", data: sumberEnergi }, { title: "Sumber Protein", data: sumberProtein }, { title: "Mineral dan Premix", data: mineralPrefix }].map((kategori, idx) => {
+            const selectedCount = kategori.data.filter((item) => selectedBahanPakan.includes(item.id)).length;
+            return (
+              <details key={idx} className="mb-6 border rounded-lg shadow-sm">
+                <summary className="cursor-pointer text-lg font-semibold p-3 bg-green-50 rounded-t-lg text-green-700">
+                  {kategori.title} ({selectedCount} dipilih)
+                </summary>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+                  {kategori.data.map((item) => (
+                    <label
+                      key={item.id}
+                      className="flex items-center gap-2 p-2 bg-white rounded border hover:bg-green-50"
+                    >
+                      <input
+                        type="checkbox"
+                        value={item.id}
+                        onChange={handleCheckboxChange}
+                        checked={selectedBahanPakan.includes(item.id)}
+                        className="accent-green-600 w-4 h-4"
+                      />
+                      <span className="truncate text-sm">{item.nama}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            );
+          })}
 
           {/* Preview Bahan Terpilih */}
           <div className="mt-12">
@@ -229,24 +226,8 @@ const FormulasiPage = () => {
             </h3>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  label: "Sumber Energi",
-                  list: getSelectedBahanByKategori(sumberEnergi),
-                },
-                {
-                  label: "Sumber Protein",
-                  list: getSelectedBahanByKategori(sumberProtein),
-                },
-                {
-                  label: "Mineral dan Premix",
-                  list: getSelectedBahanByKategori(mineralPrefix),
-                },
-              ].map((kategori, idx) => (
-                <div
-                  key={idx}
-                  className="bg-gray-50 rounded-xl p-4 shadow-sm border"
-                >
+              {[{ label: "Sumber Energi", list: getSelectedBahanByKategori(sumberEnergi) }, { label: "Sumber Protein", list: getSelectedBahanByKategori(sumberProtein) }, { label: "Mineral dan Premix", list: getSelectedBahanByKategori(mineralPrefix) }].map((kategori, idx) => (
+                <div key={idx} className="bg-gray-50 rounded-xl p-4 shadow-sm border">
                   <h4 className="text-lg font-semibold text-gray-700 mb-3">
                     {kategori.label}
                   </h4>
@@ -257,23 +238,19 @@ const FormulasiPage = () => {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500">
-                      Belum ada bahan dipilih
-                    </p>
+                    <p className="text-sm text-gray-500">Belum ada bahan dipilih</p>
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-10">
             <button
               onClick={handleFormulasi}
               disabled={loading}
               className={`px-10 py-4 text-lg font-semibold rounded-full transition-all duration-200 ${
-                loading
-                  ? "bg-green-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
+                loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
               } text-white shadow-lg`}
             >
               {loading ? "Memproses..." : "Formulasikan Ransum"}

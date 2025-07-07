@@ -22,11 +22,13 @@ const RiwayatFormulasi = () => {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [newNamaFormulasi, setNewNamaFormulasi] = useState("");
   const [selectedToRename, setSelectedToRename] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "PakanUnggas - Formulasi Tersimpan"; 
+    document.title = "PakanUnggas - Formulasi Tersimpan";
   }, []);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ const RiwayatFormulasi = () => {
     } else {
       setFaseOptions([]);
     }
+    setCurrentPage(1);
   };
 
   const confirmDelete = (id) => {
@@ -107,6 +110,12 @@ const RiwayatFormulasi = () => {
       selectedFase ? f.fase.id.toString() === selectedFase : true
     )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -184,7 +193,7 @@ const RiwayatFormulasi = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((formulasi) => (
+                {paginatedData.map((formulasi) => (
                   <tr
                     key={formulasi.id}
                     onClick={() =>
@@ -229,6 +238,44 @@ const RiwayatFormulasi = () => {
                 ))}
               </tbody>
             </table>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-4 mb-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Prev
+                </button>
+
+                {[...Array(totalPages)].map((_, idx) => (
+                  <button
+                    key={idx + 1}
+                    onClick={() => setCurrentPage(idx + 1)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === idx + 1
+                        ? "bg-blue-700 text-white"
+                        : "bg-gray-200 hover:bg-gray-300"
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
 
             {showModal && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

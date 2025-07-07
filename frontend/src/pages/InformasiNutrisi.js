@@ -81,7 +81,7 @@ const InformasiNutrisi = () => {
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Jenis Unggas</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={selectedJenis?.id || ""}
                 onChange={(e) => {
                   const jenis = jenisList.find(
@@ -102,7 +102,7 @@ const InformasiNutrisi = () => {
             <div>
               <label className="block text-sm font-medium mb-1">Fase</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={selectedFase?.fase || ""}
                 onChange={(e) => {
                   const fase = faseList.find(
@@ -121,7 +121,7 @@ const InformasiNutrisi = () => {
           </div>
 
           {/* Tabel Nutrisi */}
-          <div className="overflow-x-auto bg-white shadow border rounded-xl">
+          <div className="overflow-x-auto bg-white shadow-md border rounded-xl">
             <table className="w-full text-base">
               <thead className="bg-green-600 text-white">
                 <tr>
@@ -170,7 +170,7 @@ const InformasiNutrisi = () => {
                   nutrisiList
                     .sort((a, b) => (b.min_value ?? 0) - (a.min_value ?? 0)) // Sort by min_value desc
                     .map((item, i) => (
-                      <tr key={i} className="even:bg-gray-50 hover:bg-green-50 transition">
+                      <tr key={i} className="even:bg-gray-50 hover:bg-green-50 transition text-sm md:text-base">
                         <td className="p-3 border-t">{item.nutrien.nama}</td>
                         <td className="p-3 border-t text-right">
                           {item.min_value ?? "-"}
